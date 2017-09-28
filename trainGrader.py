@@ -27,25 +27,40 @@ class predictGrades:
       print xl.sheet_names
       self.df = xl.parse("training_set")
       # print self.df.head()
-      return self.df
-
+      # we expect 1785 rows of training data, but found 1783
+      # self.cleanData()
+      return self.df.loc[self.df['essay_set'] == 1]
+      
+  # def cleanData(self):
+  #   self.df.dropna()
+  #   self.df[self.df['domain1_score'].apply(lambda x: str(x).isdigit())]
+    
 if __name__ == "__main__":
   predict = predictGrades()
   data = predict.readData()
+  
+  data.dropna()
+  data[data['domain1_score'].apply(lambda x: str(x).isdigit())]
+  data['domain1_score'] = data['domain1_score'].astype(int)
+
   # use essay set 1 for now, has 2-12 for grade range, convert this to 0 to 100%?
   essay_set = data['essay_set']
-  print essay_set.head(20)
+  print essay_set
   # X = essay data    
   # use essay_set to understand the context of the essay
   # deal with Anonymization in essay 
   essay = data['essay']
-  print essay.head(20)
+  print essay
   # Y = domain1_score, since all essays havbe this and it considers rater1 and rater2's score
   # need to normalize / clean this
   grade = data['domain1_score']
-  print grade.head(20)
+  print grade
 
-  
+  # trying out svm to get the accuracy
+  clf = svm.SVC()
+  clf.fit(essay, grade)
+
+  clf.predict(essay[28])
   
 # Datas columns descriptions:
 
