@@ -13,8 +13,9 @@ from sklearn.metrics import f1_score
 from sklearn.ensemble import RandomForestClassifier
 import os
 from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.pipeline import Pipeline
 
-class predictGrades:
+class trainModel:
   def __init__(self):
     self.df = None
     pass
@@ -33,8 +34,8 @@ class predictGrades:
   #   self.df[self.df['domain1_score'].apply(lambda x: str(x).isdigit())]
     
 if __name__ == "__main__":
-  predict = predictGrades()
-  data = predict.readData()
+  train = trainModel()
+  data = train.readData()
   
   data.dropna()
   data[data['domain1_score'].apply(lambda x: str(x).isdigit())]
@@ -49,23 +50,26 @@ if __name__ == "__main__":
   essay = data['essay']
   print(essay)
   # Y = domain1_score, since all essays havbe this and it considers rater1 and rater2's score
-  # need to normalize / clean this
+  # need to normalize / clean this, scale min 2 , max 12 to min 0 max 100
   grade = data['domain1_score']
   print(grade)
-
-  # switch to word2vec
-  vectorizer = CountVectorizer()
+  
   # text to vector 
-  essay = vectorizer.fit_transform(essay)
+  # essay = vectorizer.fit_transform(essay)
 
   # trying out svm to get the accuracy
   clf = svm.SVC()
-  clf.fit(essay, grade)
+  # clf.fit(essay, grade)
+
+  # switch to word2vec
+  pipe_clf = Pipeline([('vectorizer', CountVectorizer()), ('svm', clf)])
+  pipe_clf.fit(essay,grade)
+  joblib.dump(pipe_clf, 'gradingModel.pkl')
 
   print ('Prediction:')
-  print (clf.predict(essay[28]))
+  print (pipe_clf.predict(essay[1000:1010]))
   
-# Datas columns descriptions:
+# Data columns descriptions:
 
 # essay_id: A unique identifier for each individual student essay
 # essay_set: 1-8, an id for each set of essays
