@@ -1,4 +1,3 @@
-# mean reversion for long term prediction
 from __future__ import division # preventing division issue in 2.7
 import pandas as pd 
 import math
@@ -12,9 +11,7 @@ import matplotlib.pyplot as plt
 import pylab
 from sklearn.metrics import f1_score
 from sklearn.ensemble import RandomForestClassifier
-import time
 import os
-import datetime
 from sklearn.feature_extraction.text import CountVectorizer
 
 class predictGrades:
@@ -27,7 +24,6 @@ class predictGrades:
       xl = pd.ExcelFile(file_name_training, options={'encoding':'utf-8'})
       print(xl.sheet_names)
       self.df = xl.parse("training_set")
-      # print self.df.head()
       # we expect 1785 rows of training data, but found 1783
       # self.cleanData()
       return self.df.loc[self.df['essay_set'] == 1]
@@ -57,6 +53,7 @@ if __name__ == "__main__":
   grade = data['domain1_score']
   print(grade)
 
+  # switch to word2vec
   vectorizer = CountVectorizer()
   # text to vector 
   essay = vectorizer.fit_transform(essay)
