@@ -15,6 +15,7 @@ from sklearn.ensemble import RandomForestClassifier
 import time
 import os
 import datetime
+from sklearn.feature_extraction.text import CountVectorizer
 
 class predictGrades:
   def __init__(self):
@@ -23,7 +24,7 @@ class predictGrades:
 
   def readData(self):
       file_name_training = 'original_training_data.xlsx'
-      xl = pd.ExcelFile(file_name_training)
+      xl = pd.ExcelFile(file_name_training, options={'encoding':'utf-8'})
       print(xl.sheet_names)
       self.df = xl.parse("training_set")
       # print self.df.head()
@@ -56,11 +57,16 @@ if __name__ == "__main__":
   grade = data['domain1_score']
   print(grade)
 
+  vectorizer = CountVectorizer()
+  # text to vector 
+  essay = vectorizer.fit_transform(essay)
+
   # trying out svm to get the accuracy
   clf = svm.SVC()
   clf.fit(essay, grade)
 
-  clf.predict(essay[28])
+  print ('Prediction:')
+  print (clf.predict(essay[28]))
   
 # Datas columns descriptions:
 
