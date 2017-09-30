@@ -1,0 +1,39 @@
+
+.upper {
+	text-transform: uppercase;
+}
+
+.small {
+	font-size: 0.7em;
+}
+
+.clickable {
+	cursor:pointer;
+}
+
+.field-group {
+	margin: 10px 0 10px 0;
+}
+
+.footer {
+	border-top: 1px solid #D4D4D4;
+	font-size: 0.8em;
+	margin-top: 25px;
+	padding: 10px 5px 10px 5px;
+}
+
+/* Begin bootstrap style overrides */
+input[type="text"] {
+	height: 30px;
+	margin: 0;
+}
+
+.danger {
+	background-color: #F2DEDE !important;
+    border-color: #EED3D7 !important;
+}
+
+.warning {
+	background-color: #FCF8E3 !important;
+    border-color: #FBEED5 !important;
+}

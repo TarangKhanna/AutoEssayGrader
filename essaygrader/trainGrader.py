@@ -24,7 +24,7 @@ class predictGrades:
   def readData(self):
       file_name_training = 'original_training_data.xlsx'
       xl = pd.ExcelFile(file_name_training)
-      print xl.sheet_names
+      print(xl.sheet_names)
       self.df = xl.parse("training_set")
       # print self.df.head()
       # we expect 1785 rows of training data, but found 1783
@@ -45,16 +45,16 @@ if __name__ == "__main__":
 
   # use essay set 1 for now, has 2-12 for grade range, convert this to 0 to 100%?
   essay_set = data['essay_set']
-  print essay_set
+  print(essay_set)
   # X = essay data    
   # use essay_set to understand the context of the essay
   # deal with Anonymization in essay 
   essay = data['essay']
-  print essay
+  print(essay)
   # Y = domain1_score, since all essays havbe this and it considers rater1 and rater2's score
   # need to normalize / clean this
   grade = data['domain1_score']
-  print grade
+  print(grade)
 
   # trying out svm to get the accuracy
   clf = svm.SVC()
