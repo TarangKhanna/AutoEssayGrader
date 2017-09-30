@@ -61,13 +61,17 @@ if __name__ == "__main__":
   clf = svm.SVC()
   # clf.fit(essay, grade)
 
+  X_train, X_test, y_train, y_test = train_test_split(essay,grade,test_size=0.6)
+
   # switch to word2vec
   pipe_clf = Pipeline([('vectorizer', CountVectorizer()), ('svm', clf)])
-  pipe_clf.fit(essay,grade)
+  pipe_clf.fit(X_train,y_train)
+  accuracy = pipe_clf.score(X_test,y_test)
+  print accuracy
   joblib.dump(pipe_clf, 'gradingModel.pkl')
 
-  print ('Prediction:')
-  print (pipe_clf.predict(essay[1000:1010]))
+  # print ('Prediction:')
+  # print (pipe_clf.predict(essay[1000:1020]))
   
 # Data columns descriptions:
 
