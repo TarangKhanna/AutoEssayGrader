@@ -67,7 +67,7 @@ if __name__ == "__main__":
   pipe_clf = Pipeline([('vectorizer', CountVectorizer()), ('svm', clf)])
   pipe_clf.fit(X_train,y_train)
   accuracy = pipe_clf.score(X_test,y_test)
-  print accuracy
+  print(accuracy)
   joblib.dump(pipe_clf, 'gradingModel.pkl')
 
   # print ('Prediction:')
