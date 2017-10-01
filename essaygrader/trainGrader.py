@@ -2,12 +2,16 @@ from __future__ import division # preventing division issue in 2.7
 import pandas as pd 
 import math
 import numpy as np
+from textblob import TextBlob
 from sklearn import svm
 from sklearn.externals import joblib
 from sklearn import preprocessing
+from sklearn.feature_extraction.text import TfidfTransformer
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LinearRegression
 import matplotlib.pyplot as plt
+from sklearn.pipeline import FeatureUnion
+from sklearn.naive_bayes import MultinomialNB
 import pylab
 from sklearn.metrics import f1_score
 from sklearn.ensemble import RandomForestClassifier
@@ -48,11 +52,18 @@ if __name__ == "__main__":
   # use essay_set to understand the context of the essay
   # deal with Anonymization in essay 
   essay = data['essay']
+
+  data['text_length'] =  data['essay'].str.len()
+  print(data['text_length'])
+
+  # data['word_length'] =  data['essay'].str.len()
+  # print(data['word_length'])
+
   print(essay)
   # Y = domain1_score, since all essays havbe this and it considers rater1 and rater2's score
   # need to normalize / clean this, scale min 2 , max 12 to min 0 max 100
   grade = data['domain1_score']
-  print(grade)
+  # print(grade)
   
   # text to vector 
   # essay = vectorizer.fit_transform(essay)
@@ -61,13 +72,19 @@ if __name__ == "__main__":
   clf = svm.SVC()
   # clf.fit(essay, grade)
 
+  # X = essay,  data['text_length']
+
   X_train, X_test, y_train, y_test = train_test_split(essay,grade,test_size=0.6)
 
   # switch to word2vec
-  pipe_clf = Pipeline([('vectorizer', CountVectorizer()), ('svm', clf)])
+  # add feature union to support multiple features
+  pipe_clf = Pipeline([('vect', CountVectorizer()), ('svm', MultinomialNB())])
+  # pipe_clf = Pipeline([('vectorizer', CountVectorizer()), ('svm', clf)])
+  
   pipe_clf.fit(X_train,y_train)
   accuracy = pipe_clf.score(X_test,y_test)
-  print accuracy
+
+  print(accuracy)
   joblib.dump(pipe_clf, 'gradingModel.pkl')
 
   # print ('Prediction:')

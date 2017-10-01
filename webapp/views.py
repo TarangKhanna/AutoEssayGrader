@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from django.http import HttpResponse
 from .request_handler import render_to_populated_response, get_param_with_default
-from essaygrader.trainGrader import predictGrades
+#from essaygrader.trainGrader import predictGrades
 
 def login(request):
 
