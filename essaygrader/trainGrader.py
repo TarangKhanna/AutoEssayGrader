@@ -5,6 +5,7 @@ import numpy as np
 from textblob import TextBlob
 from sklearn import svm
 from sklearn.externals import joblib
+from sklearn.base import TransformerMixin
 from sklearn import preprocessing
 from sklearn.feature_extraction.text import TfidfTransformer
 from sklearn.model_selection import train_test_split
@@ -19,6 +20,20 @@ import os
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.pipeline import Pipeline
 
+# custom scikit learn transformer to incorporate number of words
+# of the essay into the features
+class NumWordsTransformer(TransformerMixin):
+    def transform(self, X, **transform_params):
+        lengths = pd.DataFrame(X)
+        lengths.sort_index(inplace=True)
+        # convert words to lower?
+        l = lengths['essay'].str.split(" ").str.len()
+        print (l)
+        return pd.DataFrame(l)
+
+    def fit(self, X, y=None, **fit_params):
+        return self
+
 class trainModel:
   def __init__(self):
     self.df = None
@@ -27,7 +42,7 @@ class trainModel:
   def readData(self):
       file_name_training = 'original_training_data.xlsx'
       xl = pd.ExcelFile(file_name_training, options={'encoding':'utf-8'})
-      print(xl.sheet_names)
+      # print(xl.sheet_names)
       self.df = xl.parse("training_set")
       # we expect 1785 rows of training data, but found 1783
       # self.cleanData()
@@ -43,23 +58,23 @@ if __name__ == "__main__":
   
   data.dropna()
   data[data['domain1_score'].apply(lambda x: str(x).isdigit())]
-  data['domain1_score'] = data['domain1_score'].astype(int)
+  # data['domain1_score'] = data['domain1_score'].astype(int)
 
   # use essay set 1 for now, has 2-12 for grade range, convert this to 0 to 100%?
   essay_set = data['essay_set']
-  print(essay_set)
+  # print(essay_set)
   # X = essay data    
   # use essay_set to understand the context of the essay
   # deal with Anonymization in essay 
   essay = data['essay']
 
-  data['text_length'] =  data['essay'].str.len()
-  print(data['text_length'])
+  # data['text_length'] =  data['essay'].str.len()
+  # print(data['text_length'])
 
   # data['word_length'] =  data['essay'].str.len()
   # print(data['word_length'])
 
-  print(essay)
+  # print(essay)
   # Y = domain1_score, since all essays havbe this and it considers rater1 and rater2's score
   # need to normalize / clean this, scale min 2 , max 12 to min 0 max 100
   grade = data['domain1_score']
@@ -79,8 +94,18 @@ if __name__ == "__main__":
   # switch to word2vec
   # add feature union to support multiple features
   # pipe_clf = Pipeline([('vect', CountVectorizer()), ('svm', MultinomialNB())])
-  pipe_clf = Pipeline([('vectorizer', CountVectorizer()), ('svm', clf)])
+  # pipe_clf = Pipeline([('vectorizer', CountVectorizer()), ('svm', clf)])
   
+  pipe_clf = Pipeline([
+    ('features', FeatureUnion([
+      ('ngram_tf_idf', Pipeline([
+        ('counts', CountVectorizer())
+      ])),
+      ('essay_length', NumWordsTransformer())
+    ])),
+    ('classifier', clf)
+  ])
+
   pipe_clf.fit(X_train,y_train)
   accuracy = pipe_clf.score(X_test,y_test)
   print(accuracy)
