@@ -78,12 +78,11 @@ if __name__ == "__main__":
 
   # switch to word2vec
   # add feature union to support multiple features
-  pipe_clf = Pipeline([('vect', CountVectorizer()), ('svm', MultinomialNB())])
-  # pipe_clf = Pipeline([('vectorizer', CountVectorizer()), ('svm', clf)])
+  # pipe_clf = Pipeline([('vect', CountVectorizer()), ('svm', MultinomialNB())])
+  pipe_clf = Pipeline([('vectorizer', CountVectorizer()), ('svm', clf)])
   
   pipe_clf.fit(X_train,y_train)
   accuracy = pipe_clf.score(X_test,y_test)
-
   print(accuracy)
   joblib.dump(pipe_clf, 'gradingModel.pkl')
 
