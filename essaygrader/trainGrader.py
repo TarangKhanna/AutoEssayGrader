@@ -125,3 +125,11 @@ if __name__ == "__main__":
 # rater2_domain2: Rater 2's domain 2 score; only essays in set 2 have this
 # domain2_score: Resolved score between the raters; only essays in set 2 have this
 # rater1_trait1 score - rater3_trait6 score: trait scores for sets 7-8
+
+
+# features to add:
+# Number of exclamation marks
+# Number of question marks
+# Number of “difficult” words (vocab)
+# Number of spelling mistakes (spelling).
+# Number of stopwords
