@@ -25,8 +25,6 @@ from sklearn.pipeline import Pipeline
 class NumWordsTransformer(TransformerMixin):
     def transform(self, X, **transform_params):
         lengths = pd.DataFrame(X)
-        lengths.sort_index(inplace=True)
-        # convert words to lower?
         l = lengths['essay'].str.split(" ").str.len()
         print (l)
         return pd.DataFrame(l)
