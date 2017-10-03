@@ -1,0 +1,22 @@
+{% extends "template.html" %}
+
+
+{% load static from staticfiles %}
+<html>
+<head>
+	{% block head_components %}
+   	{% endblock %}
+</head>
+{% block content %}
+<body>
+  <h1>Essay Grader</h1>
+  <form action="/action_page.php">
+	Username: <input type="text" name="Username" value="User"><br>
+	Password: <input type="password" name="Password" value="Password"><br>
+	<input type="submit" value="Login">
+  </form>
+
+
+</body>
+{% endblock %}
+</html>
