@@ -6,11 +6,11 @@ from .upload_essay_form import UploadEssayForm
 from essaygrader.predictGrades import predictGrades
 #from sklearn.base import TransformerMixin
 from essaygrader.trainGrader import NumWordsTransformer
-
+from django.template import Context, loader
 
 def login(request):
-
-    return HttpResponse('Log in page') #TODO
+    template = loader.get_template("./login.html")
+    return HttpResponse(template.render())
 
 def view_past_essays(request):
 
@@ -80,7 +80,6 @@ class NumWordsTransformer(TransformerMixin):
         l = lengths['essay'].str.split(" ").str.len()
         print (l)
         return pd.DataFrame(l)
-
     def fit(self, X, y=None, **fit_params):
         return self
 """
