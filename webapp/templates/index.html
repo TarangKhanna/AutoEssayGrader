@@ -9,7 +9,34 @@
 </head>
 {% block content %}
 <body>
-  <h1>Hey!</h1>
+	<h3>Upload Essay</h3>
+	<form class="horizontal-form" action="/webapp/submit_essay/" enctype="multipart/form-data" method="post">{%csrf_token%}
+		{% for error in form.non_field_errors %}
+			<div class="alert alert-danger">
+	           Error: {{error}}
+	        </div>
+        {% endfor %}
+        {% for field in form %}
+        	{% if field.errors %}
+			<div class="alert alert-danger">
+            	{{field.errors}}
+        	</div>
+        	{% endif %}
+			<div class="form-group">
+				{{field.label}}
+				{{field|linebreaks}}
+			</div>
+		{% endfor %}
+		<div class="form-group">
+			<input class="btn btn-primary" type="submit" value="Evaluate Essay" />
+		</div>
+	</form>
+
+	{% if essay_grade %}
+		<div class="alert alert-info">
+			Essay Grade: {{essay_grade}}
+		</div>
+	{% endif %}
 </body>
 {% endblock %}
 </html>
