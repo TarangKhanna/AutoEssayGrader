@@ -2,6 +2,8 @@
 import os
 import sys
 from essaygrader.trainGrader import NumWordsTransformer
+from essaygrader.trainGrader import NumStopWordsTransformer
+from essaygrader.trainGrader import NumIncorrectSpellingTransformer
 
 if __name__ == "__main__":
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "essaygrader.settings")

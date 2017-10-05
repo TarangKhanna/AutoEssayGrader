@@ -1,5 +1,7 @@
 from sklearn.externals import joblib
 from essaygrader.trainGrader import NumWordsTransformer
+from essaygrader.trainGrader import NumStopWordsTransformer
+from essaygrader.trainGrader import NumIncorrectSpellingTransformer
 import pandas as pd 
 
 class predictGrades:
@@ -14,7 +16,7 @@ class predictGrades:
         df = pd.DataFrame()
         df['essay'] = [essay]
         print (df['essay'])
-        return round(((float) (clf.predict(df['essay'])[0])/12.0 * 100.0), 2)
+        return round((float) (clf.predict(df['essay'])[0]), 2)
 
 if __name__ == "__main__":
     pg = predictGrades()

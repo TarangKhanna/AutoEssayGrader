@@ -5,6 +5,7 @@ import numpy as np
 from textblob import TextBlob
 from sklearn import svm
 from sklearn.externals import joblib
+from nltk.tokenize import RegexpTokenizer
 from sklearn.base import TransformerMixin
 from sklearn import preprocessing
 from sklearn.feature_extraction.text import TfidfTransformer
@@ -35,25 +36,41 @@ class NumWordsTransformer(TransformerMixin):
     def fit(self, X, y=None, **fit_params):
         return self
 
-def f(row):
-    count = 0
-    s = set(stopwords.words('english'))
-    for i in row['essay'].split(" "):
-      if i in s:
-        count += 1
-    return count
-
 class NumStopWordsTransformer(TransformerMixin):
     def transform(self, X, **transform_params):
         lengths = pd.DataFrame(X)
-        l = lengths['essay'].str.split(" ").str.len()
-        lengths['stopWords'] = lengths.apply(f, axis=1)
-        print (lengths)
-        # print (l)
-        return pd.DataFrame(l)
+        lengths['stopWords'] = lengths.apply(self.stopWordHelper, axis=1)
+        return pd.DataFrame(lengths['stopWords'])
 
     def fit(self, X, y=None, **fit_params):
         return self
+    
+    def stopWordHelper(self, row):
+      count = 0
+      s = set(stopwords.words('english'))
+      for word in row['essay'].split(" "):
+        if word in s:
+          count += 1
+      return count
+    
+class NumIncorrectSpellingTransformer(TransformerMixin):
+    def transform(self, X, **transform_params):
+        lengths = pd.DataFrame(X)
+        lengths['IncorrectSpelling'] = lengths.apply(self.spellCheckHelper, axis=1)
+        return pd.DataFrame(lengths['IncorrectSpelling'])
+
+    def fit(self, X, y=None, **fit_params):
+        return self
+
+    def spellCheckHelper(self, row):
+        count = 0
+        tokenizer = RegexpTokenizer(r'\w+')
+        enchantDictionary = enchant.Dict("en_US")
+        # use this tokenizer since it eliminates punctuation
+        for word in tokenizer.tokenize(row['essay']):
+          if not enchantDictionary.check(word):
+            count += 1
+        return count
 
 class trainModel:
   def __init__(self):
@@ -67,7 +84,9 @@ class trainModel:
       self.df = xl.parse("training_set")
       # we expect 1785 rows of training data, but found 1783
       # self.cleanData()
-      return self.df.loc[self.df['essay_set'] == 1]
+      self.df.loc[self.df['essay_set'] == 1, 'domain1_score'] *= 100/12
+      self.df.loc[self.df['essay_set'] == 3, 'domain1_score'] *= 100/3
+      return self.df.loc[(self.df['essay_set'] == 1) | (self.df['essay_set'] == 3)]
       
   # def cleanData(self):
   #   self.df.dropna()
@@ -78,7 +97,7 @@ if __name__ == "__main__":
   data = train.readData()
   
   data.dropna()
-  data[data['domain1_score'].apply(lambda x: str(x).isdigit())]
+  # data[data['domain1_score'].apply(lambda x: str(x).isdigit())]
   # data['domain1_score'] = data['domain1_score'].astype(int)
 
   # use essay set 1 for now, has 2-12 for grade range, convert this to 0 to 100%?
@@ -98,18 +117,15 @@ if __name__ == "__main__":
   # print(essay)
   # Y = domain1_score, since all essays havbe this and it considers rater1 and rater2's score
   # need to normalize / clean this, scale min 2 , max 12 to min 0 max 100
-  grade = data['domain1_score']
-  # print(grade)
+  grade = data['domain1_score'].astype(int)
+  print(grade)
   
   # text to vector 
   # essay = vectorizer.fit_transform(essay)
 
   # trying out svm to get the accuracy
-  clf = svm.SVC(C=1.0, cache_size=200, class_weight=None, coef0=0.0,
-    decision_function_shape='ovr', degree=3, gamma='auto', kernel='rbf',
-    max_iter=-1, probability=True, random_state=None, shrinking=True,
-    tol=0.001, verbose=False)
-  # clf.fit(essay, grade)
+  # convert to regression problem
+  clf = svm.SVC()
 
   # X = essay,  data['text_length']
 
@@ -125,8 +141,9 @@ if __name__ == "__main__":
       ('ngram_tf_idf', Pipeline([
         ('counts', CountVectorizer())
       ])),
-      ('essay_length', NumWordsTransformer()),
-      ('num_stop_words', NumStopWordsTransformer())
+      ('word_count', NumWordsTransformer()),
+      ('num_stop_words', NumStopWordsTransformer()),
+      ('num_incorrect_spellings', NumIncorrectSpellingTransformer())
     ])),
     ('classifier', clf)
   ])
