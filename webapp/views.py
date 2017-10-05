@@ -23,7 +23,8 @@ def contact_us(request):
         return HttpResponse('Contact Us Page') #TODO
 
 def logout(request):
-
+        # return render_to_populated_response('login.html',\
+        #     {'title':"Auto Essay Grader"},request)
         return HttpResponse('Log out page') #TODO
 
 def handle_uploaded_essay(essay_file):
