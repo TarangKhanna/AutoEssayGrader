@@ -19,6 +19,9 @@ from sklearn.ensemble import RandomForestClassifier
 import os
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.pipeline import Pipeline
+import nltk
+from nltk.corpus import stopwords
+import enchant
 
 # custom scikit learn transformer to incorporate number of words
 # of the essay into the features
@@ -26,7 +29,27 @@ class NumWordsTransformer(TransformerMixin):
     def transform(self, X, **transform_params):
         lengths = pd.DataFrame(X)
         l = lengths['essay'].str.split(" ").str.len()
-        print (l)
+        # print (l)
+        return pd.DataFrame(l)
+
+    def fit(self, X, y=None, **fit_params):
+        return self
+
+def f(row):
+    count = 0
+    s = set(stopwords.words('english'))
+    for i in row['essay'].split(" "):
+      if i in s:
+        count += 1
+    return count
+
+class NumStopWordsTransformer(TransformerMixin):
+    def transform(self, X, **transform_params):
+        lengths = pd.DataFrame(X)
+        l = lengths['essay'].str.split(" ").str.len()
+        lengths['stopWords'] = lengths.apply(f, axis=1)
+        print (lengths)
+        # print (l)
         return pd.DataFrame(l)
 
     def fit(self, X, y=None, **fit_params):
@@ -82,7 +105,10 @@ if __name__ == "__main__":
   # essay = vectorizer.fit_transform(essay)
 
   # trying out svm to get the accuracy
-  clf = svm.SVC()
+  clf = svm.SVC(C=1.0, cache_size=200, class_weight=None, coef0=0.0,
+    decision_function_shape='ovr', degree=3, gamma='auto', kernel='rbf',
+    max_iter=-1, probability=True, random_state=None, shrinking=True,
+    tol=0.001, verbose=False)
   # clf.fit(essay, grade)
 
   # X = essay,  data['text_length']
@@ -99,7 +125,8 @@ if __name__ == "__main__":
       ('ngram_tf_idf', Pipeline([
         ('counts', CountVectorizer())
       ])),
-      ('essay_length', NumWordsTransformer())
+      ('essay_length', NumWordsTransformer()),
+      ('num_stop_words', NumStopWordsTransformer())
     ])),
     ('classifier', clf)
   ])
