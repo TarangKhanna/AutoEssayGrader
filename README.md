@@ -9,7 +9,7 @@ Install Django:
 pip install Django
 
 Install Firebase:
-sudo pip install python-firebase`
+sudo pip install python-firebase
 
 Migrate Changes in modules:
 python manage.py migrate
