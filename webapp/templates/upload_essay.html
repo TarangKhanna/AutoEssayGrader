@@ -40,6 +40,22 @@
 		<pre>
 			{{essay}}
 		</pre>
+		<br>
+		<strong>Feedback:</strong>
+		<div class="alert alert-info">
+			Word Count: {{word_count}} <br>
+			Stop Word Count: {{stop_word_count}} <br>
+			Spelling Error Count: {{spelling_error_count}}
+		</div>
+		{% if spelling_error_count > 0 %}
+
+			Spelling Errors:
+			<div class="alert alert-info">
+			{% for word in spelling_errors %}
+				{{word|linebreaks}}
+			{% endfor %}
+			</div>
+		{% endif %}
 	{% endif %}
 </body>
 {% endblock %}

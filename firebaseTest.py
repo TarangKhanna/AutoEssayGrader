@@ -11,19 +11,20 @@ firebase = firebase.FirebaseApplication('https://essaygrader-93d7d.firebaseio.co
 
 #get users table from database
 result = firebase.get('/users', None)
-print result
+print (result)
 #get user1
 result = firebase.get('/users', "user1")
-print result
+print (result)
 #get all essays for all users
-#/essays
+#/users
 #  /userid
-#	/essayid
-#		/confidence
-#		/grade
+#	/essays
+#		/essayid
+#			/grade
+#			/confidence
 
 result = firebase.get('/essays', None)
-print result
+print (result)
 
 #write to database
 
