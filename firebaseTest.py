@@ -16,11 +16,12 @@ print (result)
 result = firebase.get('/users', "user1")
 print (result)
 #get all essays for all users
-#/essays
+#/users
 #  /userid
-#	/essayid
-#		/confidence
-#		/grade
+#	/essays
+#		/essayid
+#			/grade
+#			/confidence
 
 result = firebase.get('/essays', None)
 print (result)
