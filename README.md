@@ -8,6 +8,9 @@ Need to have Python 3
 Install Django:
 pip install Django
 
+Install Firebase:
+sudo pip install python-firebase`
+
 Migrate Changes in modules:
 python manage.py migrate
 
