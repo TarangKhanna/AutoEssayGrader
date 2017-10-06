@@ -12,6 +12,14 @@ import traceback
 from nltk.tokenize import word_tokenize
 from enchant.checker import SpellChecker
 
+
+from firebase import firebase
+firebase = firebase.FirebaseApplication('https://your_storage.firebaseio.com', None)
+result = firebase.get('/users', None)
+print result
+{'1': 'John Doe', '2': 'Jane Doe'}
+
+
 def login(request):
     form = UploadLoginForm()
     return render_to_populated_response('login.html',\
