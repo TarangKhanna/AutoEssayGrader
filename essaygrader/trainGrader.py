@@ -4,9 +4,13 @@ import math
 import numpy as np
 from textblob import TextBlob
 from sklearn import svm
+from sklearn.model_selection import StratifiedShuffleSplit
 from sklearn.externals import joblib
+from sklearn.neural_network import MLPClassifier
 from nltk.tokenize import RegexpTokenizer
+from sklearn.model_selection import GridSearchCV
 from sklearn.base import TransformerMixin
+from sklearn.decomposition import PCA, NMF
 from sklearn.model_selection import learning_curve
 from sklearn.model_selection import ShuffleSplit
 from sklearn import preprocessing
@@ -33,6 +37,16 @@ class NumWordsTransformer(TransformerMixin):
         lengths = pd.DataFrame(X)
         l = lengths['essay'].str.split(" ").str.len()
         # print (l)
+        return pd.DataFrame(l)
+
+    def fit(self, X, y=None, **fit_params):
+        return self
+
+class NumCharTransformer(TransformerMixin):
+    def transform(self, X, **transform_params):
+        lengths = pd.DataFrame(X)
+        l = lengths['essay'].str.len()
+        print (l)
         return pd.DataFrame(l)
 
     def fit(self, X, y=None, **fit_params):
@@ -189,7 +203,7 @@ if __name__ == "__main__":
     # Y = domain1_score, since all essays havbe this and it considers rater1 and rater2's score
     # need to normalize / clean this, scale min 2 , max 12 to min 0 max 100
     grade = data['domain1_score'].astype(int)
-    print(grade)
+    # print(grade)
 
     # text to vector 
     # essay = vectorizer.fit_transform(essay)
@@ -197,10 +211,14 @@ if __name__ == "__main__":
     # trying out svm to get the accuracy
     # convert to regression problem
     clf = svm.SVC()
+    # clf = svm.SVC(C=1.0, cache_size=200, class_weight=None, coef0=0.0,
+    # decision_function_shape='ovr', degree=3, gamma='auto', kernel='rbf',
+    # max_iter=-1, probability=False, random_state=None, shrinking=True,
+    # tol=0.001, verbose=False)
 
     # X = essay,  data['text_length']
 
-    # X_train, X_test, y_train, y_test = train_test_split(essay,grade,test_size=0.6)
+    X_train, X_test, y_train, y_test = train_test_split(essay,grade,test_size=0.6)
 
     # switch to word2vec
     # add feature union to support multiple features
@@ -210,9 +228,10 @@ if __name__ == "__main__":
     pipe_clf = Pipeline([
     ('features', FeatureUnion([
         ('ngram_tf_idf', Pipeline([
-        ('counts', CountVectorizer())
+         ('counts', CountVectorizer())
         ])),
         ('word_count', NumWordsTransformer()),
+        ('char_count', NumCharTransformer()),
         ('num_stop_words', NumStopWordsTransformer())
     #   ('num_incorrect_spellings', NumIncorrectSpellingTransformer())
         ])),
@@ -220,20 +239,36 @@ if __name__ == "__main__":
     ])
 
     # uncomment to train and save model 
-    # pipe_clf.fit(X_train,y_train)
-    # accuracy = pipe_clf.score(X_test,y_test)
-    # print(accuracy)
-    # joblib.dump(pipe_clf, 'gradingModel.pkl')
+    pipe_clf.fit(X_train,y_train)
+    accuracy = pipe_clf.score(X_test,y_test)
+    print(accuracy)
+    joblib.dump(pipe_clf, 'gradingModel.pkl')
 
+    # C_range = np.logspace(-2, 10, 13)
+    # gamma_range = np.logspace(-9, 3, 13)
+    # param_grid = dict(gamma=gamma_range, C=C_range)
+    # cv = StratifiedShuffleSplit(n_splits=3, test_size=0.2, random_state=0)
+    # grid = GridSearchCV(clf, param_grid=param_grid, cv=None)
+    # #  It is usually a good idea to scale the data for SVM training.
+    # # scaler = StandardScaler()
+    # # X = scaler.fit_transform(essay)
+    # # X_2d = scaler.fit_transform(X)
+    # vectorizer = CountVectorizer()
+    # essay = vectorizer.fit_transform(essay)
     
+    # grid.fit(essay, grade)
+
+
+    # print("The best parameters are %s with a score of %0.2f"
+    #     % (grid.best_params_, grid.best_score_))
 
     # to find best hyper parameters--testing phase
-    title = "Learning Curves (SVC, default)"
-    # SVC is more expensive so we do a lower number of CV iterations:
-    cv = ShuffleSplit(n_splits=10, test_size=0.2, random_state=0)
-    plot_learning_curve(pipe_clf, title, essay, grade, (0.7, 1.01), cv=cv, n_jobs=4)
+    # title = "Learning Curves (SVC, default)"
+    # # SVC is more expensive so we do a lower number of CV iterations:
+    # cv = ShuffleSplit(n_splits=10, test_size=0.2, random_state=0)
+    # plot_learning_curve(pipe_clf, title, essay, grade, (0.7, 1.01), cv=cv, n_jobs=4)
 
-    plt.show()
+    # plt.show()
 
     # print ('Prediction:')
     # print (pipe_clf.predict(essay[1000:1020]))
