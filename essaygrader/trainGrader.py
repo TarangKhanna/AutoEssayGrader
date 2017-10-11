@@ -46,7 +46,6 @@ class NumCharTransformer(TransformerMixin):
     def transform(self, X, **transform_params):
         lengths = pd.DataFrame(X)
         l = lengths['essay'].str.len()
-        print (l)
         return pd.DataFrame(l)
 
     def fit(self, X, y=None, **fit_params):
@@ -210,11 +209,11 @@ if __name__ == "__main__":
 
     # trying out svm to get the accuracy
     # convert to regression problem
-    clf = svm.SVC()
-    # clf = svm.SVC(C=1.0, cache_size=200, class_weight=None, coef0=0.0,
-    # decision_function_shape='ovr', degree=3, gamma='auto', kernel='rbf',
-    # max_iter=-1, probability=False, random_state=None, shrinking=True,
-    # tol=0.001, verbose=False)
+    # clf = svm.SVC()
+    clf = svm.SVC(C=1.0, cache_size=200, class_weight=None, coef0=0.0,
+    decision_function_shape='ovr', degree=3, gamma='auto', kernel='rbf',
+    max_iter=-1, probability=False, random_state=None, shrinking=True,
+    tol=0.001, verbose=False)
 
     # X = essay,  data['text_length']
 
@@ -244,6 +243,11 @@ if __name__ == "__main__":
     print(accuracy)
     joblib.dump(pipe_clf, 'gradingModel.pkl')
 
+    # f1 score:
+    # y_pred = pipe_clf.predict(X_test)
+    # print (f1_score(y_test, y_pred, average='weighted'))
+
+    # grid search:
     # C_range = np.logspace(-2, 10, 13)
     # gamma_range = np.logspace(-9, 3, 13)
     # param_grid = dict(gamma=gamma_range, C=C_range)
@@ -258,11 +262,10 @@ if __name__ == "__main__":
     
     # grid.fit(essay, grade)
 
-
     # print("The best parameters are %s with a score of %0.2f"
     #     % (grid.best_params_, grid.best_score_))
 
-    # to find best hyper parameters--testing phase
+    # validation curve:
     # title = "Learning Curves (SVC, default)"
     # # SVC is more expensive so we do a lower number of CV iterations:
     # cv = ShuffleSplit(n_splits=10, test_size=0.2, random_state=0)
@@ -272,6 +275,9 @@ if __name__ == "__main__":
 
     # print ('Prediction:')
     # print (pipe_clf.predict(essay[1000:1020]))
+
+
+
 
 # Data columns descriptions:
 
