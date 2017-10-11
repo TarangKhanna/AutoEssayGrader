@@ -7,6 +7,8 @@ from sklearn import svm
 from sklearn.externals import joblib
 from nltk.tokenize import RegexpTokenizer
 from sklearn.base import TransformerMixin
+from sklearn.model_selection import learning_curve
+from sklearn.model_selection import ShuffleSplit
 from sklearn import preprocessing
 from sklearn.feature_extraction.text import TfidfTransformer
 from sklearn.model_selection import train_test_split
@@ -91,71 +93,151 @@ class trainModel:
   # def cleanData(self):
   #   self.df.dropna()
   #   self.df[self.df['domain1_score'].apply(lambda x: str(x).isdigit())]
-    
+
+def plot_learning_curve(estimator, title, X, y, ylim=None, cv=None,
+                        n_jobs=1, train_sizes=np.linspace(.1, 1.0, 5)):
+    """
+    Generate a simple plot of the test and training learning curve.
+
+    Parameters
+    ----------
+    estimator : object type that implements the "fit" and "predict" methods
+        An object of that type which is cloned for each validation.
+
+    title : string
+        Title for the chart.
+
+    X : array-like, shape (n_samples, n_features)
+        Training vector, where n_samples is the number of samples and
+        n_features is the number of features.
+
+    y : array-like, shape (n_samples) or (n_samples, n_features), optional
+        Target relative to X for classification or regression;
+        None for unsupervised learning.
+
+    ylim : tuple, shape (ymin, ymax), optional
+        Defines minimum and maximum yvalues plotted.
+
+    cv : int, cross-validation generator or an iterable, optional
+        Determines the cross-validation splitting strategy.
+        Possible inputs for cv are:
+          - None, to use the default 3-fold cross-validation,
+          - integer, to specify the number of folds.
+          - An object to be used as a cross-validation generator.
+          - An iterable yielding train/test splits.
+
+        For integer/None inputs, if ``y`` is binary or multiclass,
+        :class:`StratifiedKFold` used. If the estimator is not a classifier
+        or if ``y`` is neither binary nor multiclass, :class:`KFold` is used.
+
+        Refer :ref:`User Guide <cross_validation>` for the various
+        cross-validators that can be used here.
+
+    n_jobs : integer, optional
+        Number of jobs to run in parallel (default 1).
+    """
+    plt.figure()
+    plt.title(title)
+    if ylim is not None:
+        plt.ylim(*ylim)
+    plt.xlabel("Training examples")
+    plt.ylabel("Score")
+    train_sizes, train_scores, test_scores = learning_curve(
+        estimator, X, y, cv=cv, n_jobs=n_jobs, train_sizes=train_sizes)
+    train_scores_mean = np.mean(train_scores, axis=1)
+    train_scores_std = np.std(train_scores, axis=1)
+    test_scores_mean = np.mean(test_scores, axis=1)
+    test_scores_std = np.std(test_scores, axis=1)
+    plt.grid()
+
+    plt.fill_between(train_sizes, train_scores_mean - train_scores_std,
+                     train_scores_mean + train_scores_std, alpha=0.1,
+                     color="r")
+    plt.fill_between(train_sizes, test_scores_mean - test_scores_std,
+                     test_scores_mean + test_scores_std, alpha=0.1, color="g")
+    plt.plot(train_sizes, train_scores_mean, 'o-', color="r",
+             label="Training score")
+    plt.plot(train_sizes, test_scores_mean, 'o-', color="g",
+             label="Cross-validation score")
+
+    plt.legend(loc="best")
+    return plt
+
 if __name__ == "__main__":
-  train = trainModel()
-  data = train.readData()
-  
-  data.dropna()
-  # data[data['domain1_score'].apply(lambda x: str(x).isdigit())]
-  # data['domain1_score'] = data['domain1_score'].astype(int)
+    train = trainModel()
+    data = train.readData()
 
-  # use essay set 1 for now, has 2-12 for grade range, convert this to 0 to 100%?
-  essay_set = data['essay_set']
-  # print(essay_set)
-  # X = essay data    
-  # use essay_set to understand the context of the essay
-  # deal with Anonymization in essay 
-  essay = data['essay']
+    data.dropna()
+    # data[data['domain1_score'].apply(lambda x: str(x).isdigit())]
+    # data['domain1_score'] = data['domain1_score'].astype(int)
 
-  # data['text_length'] =  data['essay'].str.len()
-  # print(data['text_length'])
+    # use essay set 1 for now, has 2-12 for grade range, convert this to 0 to 100%?
+    essay_set = data['essay_set']
+    # print(essay_set)
+    # X = essay data    
+    # use essay_set to understand the context of the essay
+    # deal with Anonymization in essay 
+    essay = data['essay']
 
-  # data['word_length'] =  data['essay'].str.len()
-  # print(data['word_length'])
+    # data['text_length'] =  data['essay'].str.len()
+    # print(data['text_length'])
 
-  # print(essay)
-  # Y = domain1_score, since all essays havbe this and it considers rater1 and rater2's score
-  # need to normalize / clean this, scale min 2 , max 12 to min 0 max 100
-  grade = data['domain1_score'].astype(int)
-  print(grade)
-  
-  # text to vector 
-  # essay = vectorizer.fit_transform(essay)
+    # data['word_length'] =  data['essay'].str.len()
+    # print(data['word_length'])
 
-  # trying out svm to get the accuracy
-  # convert to regression problem
-  clf = svm.SVC()
+    # print(essay)
+    # Y = domain1_score, since all essays havbe this and it considers rater1 and rater2's score
+    # need to normalize / clean this, scale min 2 , max 12 to min 0 max 100
+    grade = data['domain1_score'].astype(int)
+    print(grade)
 
-  # X = essay,  data['text_length']
+    # text to vector 
+    # essay = vectorizer.fit_transform(essay)
 
-  X_train, X_test, y_train, y_test = train_test_split(essay,grade,test_size=0.6)
+    # trying out svm to get the accuracy
+    # convert to regression problem
+    clf = svm.SVC()
 
-  # switch to word2vec
-  # add feature union to support multiple features
-  # pipe_clf = Pipeline([('vect', CountVectorizer()), ('svm', MultinomialNB())])
-  # pipe_clf = Pipeline([('vectorizer', CountVectorizer()), ('svm', clf)])
-  
-  pipe_clf = Pipeline([
+    # X = essay,  data['text_length']
+
+    # X_train, X_test, y_train, y_test = train_test_split(essay,grade,test_size=0.6)
+
+    # switch to word2vec
+    # add feature union to support multiple features
+    # pipe_clf = Pipeline([('vect', CountVectorizer()), ('svm', MultinomialNB())])
+    # pipe_clf = Pipeline([('vectorizer', CountVectorizer()), ('svm', clf)])
+
+    pipe_clf = Pipeline([
     ('features', FeatureUnion([
-      ('ngram_tf_idf', Pipeline([
+        ('ngram_tf_idf', Pipeline([
         ('counts', CountVectorizer())
-      ])),
-      ('word_count', NumWordsTransformer()),
-      ('num_stop_words', NumStopWordsTransformer()),
-      ('num_incorrect_spellings', NumIncorrectSpellingTransformer())
-    ])),
-    ('classifier', clf)
-  ])
+        ])),
+        ('word_count', NumWordsTransformer()),
+        ('num_stop_words', NumStopWordsTransformer())
+    #   ('num_incorrect_spellings', NumIncorrectSpellingTransformer())
+        ])),
+        ('classifier', clf)
+    ])
 
-  pipe_clf.fit(X_train,y_train)
-  accuracy = pipe_clf.score(X_test,y_test)
-  print(accuracy)
-  joblib.dump(pipe_clf, 'gradingModel.pkl')
+    # uncomment to train and save model 
+    # pipe_clf.fit(X_train,y_train)
+    # accuracy = pipe_clf.score(X_test,y_test)
+    # print(accuracy)
+    # joblib.dump(pipe_clf, 'gradingModel.pkl')
 
-  # print ('Prediction:')
-  # print (pipe_clf.predict(essay[1000:1020]))
-  
+    
+
+    # to find best hyper parameters--testing phase
+    title = "Learning Curves (SVC, default)"
+    # SVC is more expensive so we do a lower number of CV iterations:
+    cv = ShuffleSplit(n_splits=10, test_size=0.2, random_state=0)
+    plot_learning_curve(pipe_clf, title, essay, grade, (0.7, 1.01), cv=cv, n_jobs=4)
+
+    plt.show()
+
+    # print ('Prediction:')
+    # print (pipe_clf.predict(essay[1000:1020]))
+
 # Data columns descriptions:
 
 # essay_id: A unique identifier for each individual student essay
