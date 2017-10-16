@@ -1,6 +1,7 @@
 from __future__ import division # preventing division issue in 2.7
 import pandas as pd 
 import math
+import string
 import numpy as np
 from textblob import TextBlob
 from sklearn import svm
@@ -50,6 +51,32 @@ class NumCharTransformer(TransformerMixin):
 
     def fit(self, X, y=None, **fit_params):
         return self
+    
+class NumCharTransformer(TransformerMixin):
+    def transform(self, X, **transform_params):
+        lengths = pd.DataFrame(X)
+        l = lengths['essay'].str.len()
+        return pd.DataFrame(l)
+
+    def fit(self, X, y=None, **fit_params):
+        return self
+
+class NumPunctuationTransformer(TransformerMixin):
+    def transform(self, X, **transform_params):
+        lengths = pd.DataFrame(X)
+        lengths['punctuation'] = lengths.apply(self.punctuationHelper, axis=1)
+        return pd.DataFrame(lengths['punctuation'])
+
+    def fit(self, X, y=None, **fit_params):
+        return self
+    
+    def punctuationHelper(self, row):
+      count = 0
+      s = set(string.punctuation)
+      for word in row['essay'].split(" "):
+        if word in s:
+          count += 1
+      return count
 
 class NumStopWordsTransformer(TransformerMixin):
     def transform(self, X, **transform_params):
@@ -98,14 +125,17 @@ class trainModel:
       # print(xl.sheet_names)
       self.df = xl.parse("training_set")
       # we expect 1785 rows of training data, but found 1783
-      # self.cleanData()
-      self.df.loc[self.df['essay_set'] == 1, 'domain1_score'] *= 100/12
-      self.df.loc[self.df['essay_set'] == 3, 'domain1_score'] *= 100/3
-      return self.df.loc[(self.df['essay_set'] == 1) | (self.df['essay_set'] == 3)]
+    #   self.cleanData()
       
-  # def cleanData(self):
-  #   self.df.dropna()
-  #   self.df[self.df['domain1_score'].apply(lambda x: str(x).isdigit())]
+    #   the problem now is, output label and accuracy calculation
+    #   self.df.loc[self.df['essay_set'] == 1, 'domain1_score'] *= 100/12/
+      self.df.loc[self.df['essay_set'] == 3, 'domain1_score'] *= 100/3
+      self.df.loc[self.df['essay_set'] == 4, 'domain1_score'] *= 100/3
+      return self.df.loc[(self.df['essay_set'] == 3) | (self.df['essay_set'] == 4)]
+      
+#   def cleanData(self):
+#     self.df.dropna()
+#     self.df[self.df['domain1_score'].apply(lambda x: str(x).isdigit())]
 
 def plot_learning_curve(estimator, title, X, y, ylim=None, cv=None,
                         n_jobs=1, train_sizes=np.linspace(.1, 1.0, 5)):
@@ -181,6 +211,9 @@ if __name__ == "__main__":
     data = train.readData()
 
     data.dropna()
+    # data.dropna(subset='vdomain1_score')
+    # data set 4 seems to have infinite so we need this
+    data = data[np.isfinite(data['domain1_score'])]
     # data[data['domain1_score'].apply(lambda x: str(x).isdigit())]
     # data['domain1_score'] = data['domain1_score'].astype(int)
 
@@ -215,6 +248,8 @@ if __name__ == "__main__":
     max_iter=-1, probability=False, random_state=None, shrinking=True,
     tol=0.001, verbose=False)
 
+    
+
     # X = essay,  data['text_length']
 
     X_train, X_test, y_train, y_test = train_test_split(essay,grade,test_size=0.6)
@@ -231,7 +266,8 @@ if __name__ == "__main__":
         ])),
         ('word_count', NumWordsTransformer()),
         ('char_count', NumCharTransformer()),
-        ('num_stop_words', NumStopWordsTransformer())
+        ('num_stop_words', NumStopWordsTransformer()),
+        ('num_punctuations', NumPunctuationTransformer())
     #   ('num_incorrect_spellings', NumIncorrectSpellingTransformer())
         ])),
         ('classifier', clf)
