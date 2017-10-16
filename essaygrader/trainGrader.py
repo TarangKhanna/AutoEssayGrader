@@ -3,6 +3,8 @@ import pandas as pd
 import math
 import string
 import numpy as np
+# for SVM with rbf
+from sklearn.preprocessing import StandardScaler
 from textblob import TextBlob
 from sklearn import svm
 from sklearn.model_selection import StratifiedShuffleSplit
@@ -242,16 +244,17 @@ if __name__ == "__main__":
 
     # trying out svm to get the accuracy
     # convert to regression problem
-    # clf = svm.SVC()
-    clf = svm.SVC(C=1.0, cache_size=200, class_weight=None, coef0=0.0,
-    decision_function_shape='ovr', degree=3, gamma='auto', kernel='rbf',
-    max_iter=-1, probability=False, random_state=None, shrinking=True,
+    # clf = svm.SVR(kernel='poly', C=1e3, degree=2)
+    clf = svm.SVC(C=0.5, cache_size=500, class_weight=None, coef0=0.0,
+    decision_function_shape='ovo', gamma='auto', kernel='rbf',
+    max_iter=-1, probability=True, random_state=None, shrinking=False,
     tol=0.001, verbose=False)
-
-    
 
     # X = essay,  data['text_length']
 
+    # scaler = StandardScaler()
+    # X = scaler.fit_transform(essay)
+    # X_2d = scaler.fit_transform(X)
     X_train, X_test, y_train, y_test = train_test_split(essay,grade,test_size=0.6)
 
     # switch to word2vec
@@ -262,7 +265,8 @@ if __name__ == "__main__":
     pipe_clf = Pipeline([
     ('features', FeatureUnion([
         ('ngram_tf_idf', Pipeline([
-         ('counts', CountVectorizer())
+         ('counts', CountVectorizer()),
+         ('scaler', StandardScaler(with_mean=False))
         ])),
         ('word_count', NumWordsTransformer()),
         ('char_count', NumCharTransformer()),
