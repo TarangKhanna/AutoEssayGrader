@@ -8,6 +8,10 @@ Need to have Python 3
 Install Django:
 pip install Django
 
+Install PyreBase:
+pip install pyrebase
+More info on pyrebase: https://github.com/thisbejim/Pyrebase#authentication
+
 Install Firebase:
 sudo pip install python-firebase
 

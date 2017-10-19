@@ -12,18 +12,78 @@ import traceback
 from nltk.tokenize import word_tokenize
 from enchant.checker import SpellChecker
 
+from .firebase_util import auth, db
 
-# from firebase import firebase
-# firebase = firebase.FirebaseApplication('https://your_storage.firebaseio.com', None)
-# result = firebase.get('/users', None)
-# print result
-# {'1': 'John Doe', '2': 'Jane Doe'}
+import json
 
+def signup(request):
+
+    if request.method == 'POST':
+        form = UploadLoginForm(request.POST)
+        if form.is_valid():
+            email = form.cleaned_data["username"]
+            password = form.cleaned_data["password"]
+
+            try:
+                user = auth.create_user_with_email_and_password(email, password)
+                request.session['user'] = user
+                form = UploadEssayForm()
+                return render_to_populated_response('upload_essay.html',\
+                    {'title':"Auto Essay Grader",\
+                    'user_name': email,\
+                    'form': form,\
+                    'success': "Sign Up Succesful"},request)
+
+            except Exception as e:
+                error_json = e.args[1]
+                error = "Error: " + json.loads(error_json)['error']['message']
+                form = UploadLoginForm()
+                return render_to_populated_response('signup.html',\
+                    {'title':"Auto Essay Grader",\
+                    'form': form,\
+                    'error':error},request)
+
+    else:
+        form = UploadLoginForm()
+        return render_to_populated_response('signup.html',\
+            {'title':"Auto Essay Grader",\
+            'form': form},request)
 
 def login(request):
-    form = UploadLoginForm()
-    return render_to_populated_response('login.html',\
-        {'title':"Auto Essay Grader"},request)
+
+    if request.method == 'POST':
+        form = UploadLoginForm(request.POST)
+        if form.is_valid():
+            email = form.cleaned_data["username"]
+            password = form.cleaned_data["password"]
+
+            try:
+                user = auth.sign_in_with_email_and_password(email, password)
+                request.session['user'] = user
+                form = UploadEssayForm()
+                return render_to_populated_response('upload_essay.html',\
+                    {'title':"Auto Essay Grader",\
+                    'user_name': email,\
+                    'form': form,\
+                    'success': "Login Succesful"},request)
+
+            #Throws exception if sign in fails
+            except Exception as e:
+                error_json = e.args[1]
+                error = "Error: " + json.loads(error_json)['error']['message']
+                form = UploadLoginForm()
+                return render_to_populated_response('login.html',\
+                    {'title':"Auto Essay Grader",\
+                    'form': form,\
+                    'error':error},request)
+
+            
+        
+    else:  
+        form = UploadLoginForm()
+        return render_to_populated_response('login.html',\
+            {'title':"Auto Essay Grader",\
+            'form': form},request)
 
 def view_past_essays(request):
 
@@ -36,7 +96,13 @@ def contact_us(request):
 def logout(request):
         # return render_to_populated_response('login.html',\
         #     {'title':"Auto Essay Grader"},request)
-        return HttpResponse('Log out page') #TODO
+        if 'user' in request.session:
+            del request.session['user']
+        form = UploadLoginForm()
+        return render_to_populated_response('login.html',\
+            {'title':"Auto Essay Grader",\
+            'form': form,\
+            'success':"Logout Successful"},request)
 
 def handle_uploaded_essay(essay_file):
 
@@ -113,8 +179,15 @@ def submit_essay(request):
 #Required keys: 'title' and 'user_name' for template.html that is used by all pages after log in/sign up
 def upload_essay(request):
 
-    form = UploadEssayForm()
-    return render_to_populated_response('upload_essay.html',\
-        {'title':"Auto Essay Grader",\
-        'user_name': "cs407",\
-        'form': form},request)
+    if 'user' in request.session:
+        form = UploadEssayForm()
+        return render_to_populated_response('upload_essay.html',\
+            {'title':"Auto Essay Grader",\
+            'user_name': "cs407",\
+            'form': form},request)
+    else:
+        form = UploadLoginForm()
+        return render_to_populated_response('login.html',\
+            {'title':"Auto Essay Grader",\
+            'form': form,\
+            'error': "Please login to access the secured parts of this website!"},request)

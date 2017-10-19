@@ -10,6 +10,11 @@
 {% block content %}
 <body>
 	<h3>Upload Essay</h3>
+	{% if success %}
+		<div class="alert alert-success">
+	  		{{success}}
+		</div>
+	{% endif %}
 	<form class="horizontal-form" action="/webapp/submit_essay/" enctype="multipart/form-data" method="post">{%csrf_token%}
 		{% for error in form.non_field_errors %}
 			<div class="alert alert-danger">
