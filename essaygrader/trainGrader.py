@@ -32,6 +32,7 @@ from sklearn.pipeline import Pipeline
 import nltk
 from nltk.corpus import stopwords
 import enchant
+import language_check
 
 # custom scikit learn transformer to incorporate number of words
 # of the essay into the features
@@ -78,6 +79,23 @@ class NumPunctuationTransformer(TransformerMixin):
       for word in row['essay'].split(" "):
         if word in s:
           count += 1
+      return count
+
+class NumIncorrectGrammarTransformer(TransformerMixin):
+    tool = language_check.LanguageTool('en-US')
+    def transform(self, X, **transform_params):
+        lengths = pd.DataFrame(X)
+        lengths['grammar'] = lengths.apply(self.grammarHelper, axis=1)
+        return pd.DataFrame(lengths['grammar'])
+
+    def fit(self, X, y=None, **fit_params):
+        return self
+    
+    def grammarHelper(self, row):
+      count = 0
+      for sentence in row['essay'].split("."):
+          matches = self.tool.check(sentence)
+          count += len(matches)
       return count
 
 class NumStopWordsTransformer(TransformerMixin):
@@ -272,6 +290,7 @@ if __name__ == "__main__":
         ('char_count', NumCharTransformer()),
         ('num_stop_words', NumStopWordsTransformer()),
         ('num_punctuations', NumPunctuationTransformer())
+        # ('num_grammar', NumIncorrectGrammarTransformer())
     #   ('num_incorrect_spellings', NumIncorrectSpellingTransformer())
         ])),
         ('classifier', clf)
