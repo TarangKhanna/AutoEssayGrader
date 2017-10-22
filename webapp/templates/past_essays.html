@@ -1,0 +1,38 @@
+{% extends "template.html" %}
+
+
+{% load static from staticfiles %}
+<html>
+<head>
+	{% block head_components %}
+   	{% endblock %}
+</head>
+{% block content %}
+<body>
+	<h3>View Past Essays</h3>
+	{% if essay_count > 0 %}
+		<div class="alert alert-success">
+	  		Number of essays found: {{essay_count}}
+		</div>
+
+		{% for essay in essay_list %}
+			
+			<div class="alert alert-info">
+	  			{{ forloop.counter }}. <br> Essay Title: {{essay.title}} <br> Essay Grade: {{essay.essay_grade}} %
+			</div>
+			Essay Text:
+			<pre>{{essay.essay_text}}</pre>
+			<br>
+			<br>
+		{% endfor %}
+
+
+	{% else %}
+		<div class="alert alert-danger">
+	  		No Essays Found
+		</div>
+	{% endif %}
+	
+</body>
+{% endblock %}
+</html>

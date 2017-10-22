@@ -27,6 +27,14 @@ python manage.py runserver<br />
 Navigate to:<br />
 http://127.0.0.1:8000/webapp/upload_essay/<br />
 <br />
+<br />
+<br />
+SIGN IN DETAILS:<br />
+Email: shivanktibrewal@gmail.com<br />
+Password: hello123<br />
+<br />
+<br />
+<br />
 essaygrader/ - contains the essay grading component of the project. Also contains the django settings.py, urls.py
 <br />
 <br />

@@ -12,7 +12,7 @@ import traceback
 from nltk.tokenize import word_tokenize
 from enchant.checker import SpellChecker
 
-from .firebase_util import auth, db
+from .firebase_util import auth, db, firebase
 
 import json
 
@@ -87,24 +87,89 @@ def login(request):
 
 def view_past_essays(request):
 
-        return HttpResponse('Past essay page') #TODO
+    if 'user' in request.session:
+
+        essay_list = [] #List of dictionaries
+        error = ""
+        user_email = ""
+        try:
+            user_email = request.session['user']['email']
+            user_id_token = request.session['user']['idToken']
+            all_essays_by_email = db.child("user_essay").order_by_child("email").equal_to(user_email).get()
+            print("\n\nAll Essays By Email: ")
+            for essay in all_essays_by_email.each():
+                #print(str("\nKey: " + essay.key()))
+                #print(str("Value: " + str(essay.val())))
+                essay_list.append(essay.val())
+        except Exception as e:
+                error_json = e.args[1]
+                error = "Error: " + json.loads(error_json)['error']['message']
+                essay_list = [] 
+
+        print(str(essay_list))
+
+        return render_to_populated_response('past_essays.html',\
+        {'title':"Auto Essay Grader",\
+        'error':error,\
+        'essay_list':essay_list,\
+        'essay_count':len(essay_list),\
+        'user_name':user_email}, request)
+
+    #Not Logged In
+    else:
+        return not_logged_in_redirect(request)
+
+
+def not_logged_in_redirect(request):
+    form = UploadLoginForm()
+    return render_to_populated_response('login.html',\
+        {'title':"Auto Essay Grader",\
+        'form': form,\
+        'error': "Please login to access the secured parts of this website!"},request)
 
 def contact_us(request):
 
         return HttpResponse('Contact Us Page') #TODO
 
 def logout(request):
-        # return render_to_populated_response('login.html',\
-        #     {'title':"Auto Essay Grader"},request)
-        if 'user' in request.session:
-            del request.session['user']
+
+    if 'user' in request.session:
+        del request.session['user']
         form = UploadLoginForm()
         return render_to_populated_response('login.html',\
             {'title':"Auto Essay Grader",\
             'form': form,\
             'success':"Logout Successful"},request)
+    else:
+        return not_logged_in_redirect(request)
 
-def handle_uploaded_essay(essay_file):
+def save_essay_to_db(essay_text, essay_grade, essay_title, request):
+
+    if 'user' in request.session:
+        user_name = request.session['user']['email']
+        user_id_token = request.session['user']['idToken']
+
+        try:
+            # Get a reference to the database service
+            db = firebase.database()
+            data = {
+                "email":user_name,\
+                "title":essay_title,\
+                "essay_text":essay_text,\
+                "essay_grade":essay_grade
+            }
+
+            # Pass the user's idToken to the push method
+            results = db.child("user_essay").push(data, user_id_token)
+            return 1
+        except Exception as e:
+            print(e)
+            traceback.print_exc()
+            return 0
+
+    return 0
+
+def handle_uploaded_essay(essay_file, essay_title, save_to_db,request):
 
     essay = ""
     essay_grade = ""
@@ -122,6 +187,10 @@ def handle_uploaded_essay(essay_file):
         spelling_error_count, spelling_errors = get_spelling_error_count(essay)
 
         print("Essay Grade: " + str(essay_grade) + " %")
+
+        if (save_to_db):
+            save_essay_to_db(essay, essay_grade, essay_title, request)
+
     except Exception as e:
         print(e)
         traceback.print_exc()
@@ -157,7 +226,9 @@ def submit_essay(request):
         if request.method == 'POST':
             form = UploadEssayForm(request.POST,request.FILES)
             if form.is_valid():
-                essay_grade,essay,word_count,stop_word_count,spelling_error_count, spelling_errors = handle_uploaded_essay(request.FILES['file'])
+                essay_title = form.cleaned_data["title"]
+                save_to_db = form.cleaned_data["save_essay_checkbox"]
+                essay_grade,essay,word_count,stop_word_count,spelling_error_count, spelling_errors = handle_uploaded_essay(request.FILES['file'], essay_title, save_to_db,request)
                 return render_to_populated_response('upload_essay.html',\
                 {'title':"Auto Essay Grader",\
                 'user_name': user_name,\
@@ -178,11 +249,7 @@ def submit_essay(request):
         #If its not a POST request then mimic the upload essay page
         return upload_essay(request)
     else: #Not Logged in
-        form = UploadLoginForm()
-        return render_to_populated_response('login.html',\
-            {'title':"Auto Essay Grader",\
-            'form': form,\
-            'error': "Please login to access the secured parts of this website!"},request)
+        return not_logged_in_redirect(request)
 
 
 #Required keys: 'title' and 'user_name' for template.html that is used by all pages after log in/sign up
@@ -195,9 +262,5 @@ def upload_essay(request):
             {'title':"Auto Essay Grader",\
             'user_name': user_name,\
             'form': form},request)
-    else:
-        form = UploadLoginForm()
-        return render_to_populated_response('login.html',\
-            {'title':"Auto Essay Grader",\
-            'form': form,\
-            'error': "Please login to access the secured parts of this website!"},request)
+    else: #Not Logged In
+        return not_logged_in_redirect(request)
