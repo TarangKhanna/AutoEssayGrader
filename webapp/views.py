@@ -152,38 +152,48 @@ def get_spelling_error_count(essay):
 
 def submit_essay(request):
 
-    if request.method == 'POST':
-        form = UploadEssayForm(request.POST,request.FILES)
-        if form.is_valid():
-            essay_grade,essay,word_count,stop_word_count,spelling_error_count, spelling_errors = handle_uploaded_essay(request.FILES['file'])
-            return render_to_populated_response('upload_essay.html',\
-            {'title':"Auto Essay Grader",\
-            'user_name': "cs407",\
-            'form': form,\
-            'essay_grade':essay_grade,\
-            'essay':essay,\
-            'word_count':word_count,\
-            'spelling_error_count':spelling_error_count,\
-            'stop_word_count':stop_word_count,\
-            'spelling_errors':spelling_errors},request)
-        else:
-            #This will return the same form but with errors displayed to the user
-            return render_to_populated_response('upload_essay.html',\
-            {'title':"Auto Essay Grader",\
-            'user_name': "cs407",\
-            'form': form},request)
+    if 'user' in request.session:
+        user_name = request.session['user']['email']
+        if request.method == 'POST':
+            form = UploadEssayForm(request.POST,request.FILES)
+            if form.is_valid():
+                essay_grade,essay,word_count,stop_word_count,spelling_error_count, spelling_errors = handle_uploaded_essay(request.FILES['file'])
+                return render_to_populated_response('upload_essay.html',\
+                {'title':"Auto Essay Grader",\
+                'user_name': user_name,\
+                'form': form,\
+                'essay_grade':essay_grade,\
+                'essay':essay,\
+                'word_count':word_count,\
+                'spelling_error_count':spelling_error_count,\
+                'stop_word_count':stop_word_count,\
+                'spelling_errors':spelling_errors},request)
+            else:
+                #This will return the same form but with errors displayed to the user
+                return render_to_populated_response('upload_essay.html',\
+                {'title':"Auto Essay Grader",\
+                'user_name': user_name,\
+                'form': form},request)
 
-    #If its not a POST request then mimic the upload essay page
-    return upload_essay(request)
+        #If its not a POST request then mimic the upload essay page
+        return upload_essay(request)
+    else: #Not Logged in
+        form = UploadLoginForm()
+        return render_to_populated_response('login.html',\
+            {'title':"Auto Essay Grader",\
+            'form': form,\
+            'error': "Please login to access the secured parts of this website!"},request)
+
 
 #Required keys: 'title' and 'user_name' for template.html that is used by all pages after log in/sign up
 def upload_essay(request):
 
     if 'user' in request.session:
+        user_name = request.session['user']['email']
         form = UploadEssayForm()
         return render_to_populated_response('upload_essay.html',\
             {'title':"Auto Essay Grader",\
-            'user_name': "cs407",\
+            'user_name': user_name,\
             'form': form},request)
     else:
         form = UploadLoginForm()
