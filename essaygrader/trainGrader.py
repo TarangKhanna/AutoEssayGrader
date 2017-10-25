@@ -3,6 +3,7 @@ import pandas as pd
 import math
 import string
 import numpy as np
+from sklearn.metrics import classification_report
 # for SVM with rbf
 from sklearn.preprocessing import StandardScaler
 from textblob import TextBlob
@@ -153,7 +154,7 @@ class trainModel:
 
         # we expect 1785 rows of training data, but found 1783
         # get percentages
-        # self.df.loc[self.df['essay_set'] == 1, 'domain1_score'] *= 100/12
+        self.df.loc[self.df['essay_set'] == 1, 'domain1_score'] *= 100/12
         # self.df.loc[self.df['essay_set'] == 8, 'domain1_score'] *= 100/60
         self.df.loc[self.df['essay_set'] == 3, 'domain1_score'] *= 100/3
         self.df.loc[self.df['essay_set'] == 4, 'domain1_score'] *= 100/3
@@ -166,10 +167,9 @@ class trainModel:
         self.df.loc[self.df['domain1_score'] >= 85, 'domain1_grade'] = 'A'
         self.df.loc[self.df['domain1_score'] < 35, 'domain1_grade'] = 'F'
         # preprocess and save this to csv
-        # histogram of these grades
 
         # c
-        return self.df.loc[(self.df['essay_set'] == 3) | (self.df['essay_set'] == 4)]
+        return self.df.loc[(self.df['essay_set'] == 1) | (self.df['essay_set'] == 3) | (self.df['essay_set'] == 4)]
 
 #   def cleanData(self):
 #     self.df.dropna()
@@ -250,6 +250,7 @@ if __name__ == "__main__":
     print (data[['essay_id', 'domain1_score', 'domain1_grade']])
     # histogram to check distribution of grades
     data['domain1_grade'].value_counts().plot(kind='bar')
+    plt.show()
     data.dropna()
     
     # data.dropna(subset='vdomain1_score')
@@ -326,6 +327,9 @@ if __name__ == "__main__":
     accuracy = pipe_clf.score(X_test,y_test)
     print(accuracy)
     joblib.dump(pipe_clf, 'gradingModel.pkl')
+
+    y_true, y_pred = y_test, pipe_clf.predict(X_test)
+    print(classification_report(y_true, y_pred))
 
     # f1 score:
     # y_pred = pipe_clf.predict(X_test)
