@@ -6,6 +6,7 @@ import numpy as np
 # for SVM with rbf
 from sklearn.preprocessing import StandardScaler
 from textblob import TextBlob
+from sklearn.neighbors import KNeighborsClassifier
 from sklearn import svm
 from sklearn.model_selection import StratifiedShuffleSplit
 from sklearn.externals import joblib
@@ -33,6 +34,12 @@ import nltk
 from nltk.corpus import stopwords
 import enchant
 import language_check
+
+# todo:
+# 1) Convert to regression and train on more data, normaliza 0 to 1 and use kappa
+# 2) Use A/B/C/D and keep doing classification-- done, 73% accuracy with KNN
+# 3) essay & prompt cosine similarity by filtering by id, 
+# or just add query as one column to the data
 
 # custom scikit learn transformer to incorporate number of words
 # of the essay into the features
@@ -135,24 +142,35 @@ class NumIncorrectSpellingTransformer(TransformerMixin):
         return count
 
 class trainModel:
-  def __init__(self):
-    self.df = None
-    pass
+    def __init__(self):
+        self.df = None
 
-  def readData(self):
-      file_name_training = 'original_training_data.xlsx'
-      xl = pd.ExcelFile(file_name_training, options={'encoding':'utf-8'})
-      # print(xl.sheet_names)
-      self.df = xl.parse("training_set")
-      # we expect 1785 rows of training data, but found 1783
-    #   self.cleanData()
-      
-    #   the problem now is, output label and accuracy calculation
-    #   self.df.loc[self.df['essay_set'] == 1, 'domain1_score'] *= 100/12/
-      self.df.loc[self.df['essay_set'] == 3, 'domain1_score'] *= 100/3
-      self.df.loc[self.df['essay_set'] == 4, 'domain1_score'] *= 100/3
-      return self.df.loc[(self.df['essay_set'] == 3) | (self.df['essay_set'] == 4)]
-      
+    def readData(self): 
+        file_name_training = 'original_training_data.xlsx'
+        xl = pd.ExcelFile(file_name_training, options={'encoding':'utf-8'})
+        # print(xl.sheet_names)
+        self.df = xl.parse("training_set")
+
+        # we expect 1785 rows of training data, but found 1783
+        # get percentages
+        # self.df.loc[self.df['essay_set'] == 1, 'domain1_score'] *= 100/12
+        # self.df.loc[self.df['essay_set'] == 8, 'domain1_score'] *= 100/60
+        self.df.loc[self.df['essay_set'] == 3, 'domain1_score'] *= 100/3
+        self.df.loc[self.df['essay_set'] == 4, 'domain1_score'] *= 100/3
+        # convert percentages to grade cutoffs 
+
+        self.df.loc[(self.df['domain1_score'] >= 35), 'domain1_grade'] = 'E'
+        self.df.loc[(self.df['domain1_score'] >= 45), 'domain1_grade'] = 'D'
+        self.df.loc[(self.df['domain1_score'] >= 55), 'domain1_grade'] = 'C'
+        self.df.loc[(self.df['domain1_score'] >= 70), 'domain1_grade'] = 'B'
+        self.df.loc[self.df['domain1_score'] >= 85, 'domain1_grade'] = 'A'
+        self.df.loc[self.df['domain1_score'] < 35, 'domain1_grade'] = 'F'
+        # preprocess and save this to csv
+        # histogram of these grades
+
+        # c
+        return self.df.loc[(self.df['essay_set'] == 3) | (self.df['essay_set'] == 4)]
+
 #   def cleanData(self):
 #     self.df.dropna()
 #     self.df[self.df['domain1_score'].apply(lambda x: str(x).isdigit())]
@@ -229,8 +247,11 @@ def plot_learning_curve(estimator, title, X, y, ylim=None, cv=None,
 if __name__ == "__main__":
     train = trainModel()
     data = train.readData()
-
+    print (data[['essay_id', 'domain1_score', 'domain1_grade']])
+    # histogram to check distribution of grades
+    data['domain1_grade'].value_counts().plot(kind='bar')
     data.dropna()
+    
     # data.dropna(subset='vdomain1_score')
     # data set 4 seems to have infinite so we need this
     data = data[np.isfinite(data['domain1_score'])]
@@ -254,7 +275,8 @@ if __name__ == "__main__":
     # print(essay)
     # Y = domain1_score, since all essays havbe this and it considers rater1 and rater2's score
     # need to normalize / clean this, scale min 2 , max 12 to min 0 max 100
-    grade = data['domain1_score'].astype(int)
+    # grade = data['domain1_score'].astype(int)
+    grade = data['domain1_grade']
     # print(grade)
 
     # text to vector 
@@ -263,10 +285,13 @@ if __name__ == "__main__":
     # trying out svm to get the accuracy
     # convert to regression problem
     # clf = svm.SVR(kernel='poly', C=1e3, degree=2)
-    clf = svm.SVC(C=0.5, cache_size=500, class_weight=None, coef0=0.0,
-    decision_function_shape='ovo', gamma='auto', kernel='rbf',
-    max_iter=-1, probability=True, random_state=None, shrinking=False,
-    tol=0.001, verbose=False)
+    # classification, with labels = 'A, B, C, D, E, F'
+    # clf = svm.SVC(C=0.5, cache_size=500, class_weight=None, coef0=0.0,
+    # decision_function_shape='ovo', gamma='auto', kernel='rbf',
+    # max_iter=-1, probability=True, random_state=None, shrinking=False,
+    # tol=0.001, verbose=False)
+
+    clf = KNeighborsClassifier(n_neighbors=100)
 
     # X = essay,  data['text_length']
 
@@ -290,8 +315,8 @@ if __name__ == "__main__":
         ('char_count', NumCharTransformer()),
         ('num_stop_words', NumStopWordsTransformer()),
         ('num_punctuations', NumPunctuationTransformer())
-        # ('num_grammar', NumIncorrectGrammarTransformer())
-    #   ('num_incorrect_spellings', NumIncorrectSpellingTransformer())
+        # ('num_grammar', NumIncorrectGrammarTransformer()),
+        # ('num_incorrect_spellings', NumIncorrectSpellingTransformer())
         ])),
         ('classifier', clf)
     ])
@@ -326,7 +351,6 @@ if __name__ == "__main__":
 
     # validation curve:
     # title = "Learning Curves (SVC, default)"
-    # # SVC is more expensive so we do a lower number of CV iterations:
     # cv = ShuffleSplit(n_splits=10, test_size=0.2, random_state=0)
     # plot_learning_curve(pipe_clf, title, essay, grade, (0.7, 1.01), cv=cv, n_jobs=4)
 
