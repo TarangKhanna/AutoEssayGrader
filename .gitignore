@@ -2,3 +2,5 @@
 *.pyc
 
 *.pyc
+
+webapp/.DS_Store

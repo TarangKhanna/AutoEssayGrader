@@ -250,7 +250,7 @@ if __name__ == "__main__":
     print (data[['essay_id', 'domain1_score', 'domain1_grade']])
     # histogram to check distribution of grades
     data['domain1_grade'].value_counts().plot(kind='bar')
-    plt.show()
+    # plt.show()
     data.dropna()
     
     # data.dropna(subset='vdomain1_score')
@@ -287,19 +287,21 @@ if __name__ == "__main__":
     # convert to regression problem
     # clf = svm.SVR(kernel='poly', C=1e3, degree=2)
     # classification, with labels = 'A, B, C, D, E, F'
-    # clf = svm.SVC(C=0.5, cache_size=500, class_weight=None, coef0=0.0,
-    # decision_function_shape='ovo', gamma='auto', kernel='rbf',
-    # max_iter=-1, probability=True, random_state=None, shrinking=False,
-    # tol=0.001, verbose=False)
+    # 67.8% accuracy with these parameters
+    clf = svm.SVC(C=1, cache_size=500, class_weight=None, coef0=0.0,
+    decision_function_shape='ovo', gamma='auto', kernel='rbf',
+    max_iter=-1, probability=True, random_state=None, shrinking=False,
+    tol=0.001, verbose=False)
 
-    clf = KNeighborsClassifier(n_neighbors=100)
+    # 71% accuracy with these parameters 
+    # clf = KNeighborsClassifier(n_neighbors=100)
 
     # X = essay,  data['text_length']
 
     # scaler = StandardScaler()
     # X = scaler.fit_transform(essay)
     # X_2d = scaler.fit_transform(X)
-    X_train, X_test, y_train, y_test = train_test_split(essay,grade,test_size=0.6)
+    X_train, X_test, y_train, y_test = train_test_split(essay,grade,test_size=0.2)
 
     # switch to word2vec
     # add feature union to support multiple features
@@ -315,9 +317,9 @@ if __name__ == "__main__":
         ('word_count', NumWordsTransformer()),
         ('char_count', NumCharTransformer()),
         ('num_stop_words', NumStopWordsTransformer()),
-        ('num_punctuations', NumPunctuationTransformer())
-        # ('num_grammar', NumIncorrectGrammarTransformer()),
-        # ('num_incorrect_spellings', NumIncorrectSpellingTransformer())
+        ('num_punctuations', NumPunctuationTransformer()),
+        ('num_grammar', NumIncorrectGrammarTransformer()),
+        ('num_incorrect_spellings', NumIncorrectSpellingTransformer())
         ])),
         ('classifier', clf)
     ])
