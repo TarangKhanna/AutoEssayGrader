@@ -50,11 +50,14 @@ EMBEDDING_DIM = 100
 VALIDATION_SPLIT = 0.2
 
 data_train = readData()
+data_train = data_train.dropna(subset=['domain1_score'])
+print (data_train)
 print data_train.shape
 
 # make sure this is ascii
 texts = data_train['essay'].tolist()
 labels = data_train['domain1_score'].tolist()
+labels = [int(i) for i in labels ]
 
 tokenizer = Tokenizer(num_words=MAX_NB_WORDS)
 tokenizer.fit_on_texts(texts)
@@ -114,7 +117,7 @@ l_cov3 = Conv1D(128, 5, activation='relu')(l_pool2)
 l_pool3 = MaxPooling1D(35)(l_cov3)  # global max pooling
 l_flat = Flatten()(l_pool3)
 l_dense = Dense(128, activation='relu')(l_flat)
-preds = Dense(2, activation='softmax')(l_dense)
+preds = Dense(100, activation='softmax')(l_dense)
 
 model = Model(sequence_input, preds)
 model.compile(loss='categorical_crossentropy',
@@ -124,7 +127,7 @@ model.compile(loss='categorical_crossentropy',
 print("model fitting - simplified convolutional neural network")
 model.summary()
 model.fit(x_train, y_train, validation_data=(x_val, y_val),
-          nb_epoch=10, batch_size=128)
+          epochs=10, batch_size=128)
 
 embedding_matrix = np.random.random((len(word_index) + 1, EMBEDDING_DIM))
 for word, i in word_index.items():
@@ -158,7 +161,7 @@ l_cov2 = Conv1D(128, 5, activation='relu')(l_pool1)
 l_pool2 = MaxPooling1D(30)(l_cov2)
 l_flat = Flatten()(l_pool2)
 l_dense = Dense(128, activation='relu')(l_flat)
-preds = Dense(2, activation='softmax')(l_dense)
+preds = Dense(100, activation='softmax')(l_dense)
 
 model = Model(sequence_input, preds)
 model.compile(loss='categorical_crossentropy',
