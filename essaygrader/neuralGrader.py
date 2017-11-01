@@ -34,12 +34,13 @@ def readData():
     df.loc[df['essay_set'] == 4, 'domain1_score'] *= 100/3
     # convert percentages to grade cutoffs 
 
-    df.loc[(df['domain1_score'] >= 35), 'domain1_grade'] = 'E'
-    df.loc[(df['domain1_score'] >= 45), 'domain1_grade'] = 'D'
-    df.loc[(df['domain1_score'] >= 55), 'domain1_grade'] = 'C'
-    df.loc[(df['domain1_score'] >= 70), 'domain1_grade'] = 'B'
-    df.loc[df['domain1_score'] >= 85, 'domain1_grade'] = 'A'
-    df.loc[df['domain1_score'] < 35, 'domain1_grade'] = 'F'
+    # currently // workaround, 1-6 represents A-F
+    df.loc[(df['domain1_score'] >= 35), 'domain1_grade'] = 5
+    df.loc[(df['domain1_score'] >= 45), 'domain1_grade'] = 4
+    df.loc[(df['domain1_score'] >= 55), 'domain1_grade'] = 3
+    df.loc[(df['domain1_score'] >= 70), 'domain1_grade'] = 2
+    df.loc[df['domain1_score'] >= 85, 'domain1_grade'] = 1
+    df.loc[df['domain1_score'] < 35, 'domain1_grade'] = 6
     # preprocess and save this to csv
 
     return df.loc[(df['essay_set'] == 1) | (df['essay_set'] == 3) | (df['essay_set'] == 4)]
@@ -51,13 +52,14 @@ VALIDATION_SPLIT = 0.2
 
 data_train = readData()
 data_train = data_train.dropna(subset=['domain1_score'])
-print (data_train)
+# print (data_train)
 print data_train.shape
 
 # make sure this is ascii
 texts = data_train['essay'].tolist()
-labels = data_train['domain1_score'].tolist()
-labels = [int(i) for i in labels ]
+labels = data_train['domain1_grade'].tolist()
+# labels = data_train['domain1_score'].tolist()
+labels = [int(i) for i in labels]
 
 tokenizer = Tokenizer(num_words=MAX_NB_WORDS)
 tokenizer.fit_on_texts(texts)
@@ -69,6 +71,7 @@ print('Found %s unique tokens.' % len(word_index))
 data = pad_sequences(sequences, maxlen=MAX_SEQUENCE_LENGTH)
 
 labels = to_categorical(np.asarray(labels, dtype=str))
+print (labels)
 print('Shape of data tensor:', data.shape)
 print('Shape of label tensor:', labels.shape)
 
@@ -126,7 +129,7 @@ l_cov2 = Conv1D(128, 5, activation='relu')(l_pool1)
 l_pool2 = MaxPooling1D(30)(l_cov2)
 l_flat = Flatten()(l_pool2)
 l_dense = Dense(128, activation='relu')(l_flat)
-preds = Dense(100, activation='softmax')(l_dense)
+preds = Dense(7, activation='softmax')(l_dense)
 
 model = Model(sequence_input, preds)
 model.compile(loss='categorical_crossentropy',
@@ -136,4 +139,5 @@ model.compile(loss='categorical_crossentropy',
 print("model fitting - more complex convolutional neural network")
 model.summary()
 model.fit(x_train, y_train, validation_data=(x_val, y_val),
-          nb_epoch=20, batch_size=50)
+          nb_epoch=10, batch_size=50)
+
