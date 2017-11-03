@@ -176,6 +176,7 @@ def handle_uploaded_essay(essay_file, essay_title, save_to_db,request):
     essay = ""
     essay_grade = ""
     word_count = 0
+    confidence_score = 0
     spelling_error_count = 0
     stop_word_count = 0
     spelling_errors = []
@@ -186,7 +187,8 @@ def handle_uploaded_essay(essay_file, essay_title, save_to_db,request):
         essay += chunk.decode("utf-8")
     try:
         predictor = predictGrades()
-        essay_grade = predictor.predict(essay)
+        essay_grade, confidence_score = predictor.predict(essay)
+        confidence_score = int((round(confidence_score,2) * 100)) #Percentage
         word_count = get_word_count(essay)
         stop_word_count = get_stop_word_count(essay)
         spelling_error_count, spelling_errors = get_spelling_error_count(essay)
@@ -201,7 +203,7 @@ def handle_uploaded_essay(essay_file, essay_title, save_to_db,request):
         traceback.print_exc()
         essay_grade = "Couldn't be determined.."
 
-    return essay_grade,essay,word_count,stop_word_count,spelling_error_count, spelling_errors, grammar_issues_list, grammar_issues_count
+    return essay_grade,essay,word_count,stop_word_count,spelling_error_count, spelling_errors, grammar_issues_list, grammar_issues_count, confidence_score
 
 def get_grammer_correction_list(essay):
 
@@ -247,7 +249,7 @@ def submit_essay(request):
             if form.is_valid():
                 essay_title = form.cleaned_data["title"]
                 save_to_db = form.cleaned_data["save_essay_checkbox"]
-                essay_grade,essay,word_count,stop_word_count,spelling_error_count, spelling_errors, grammar_issues_list, grammar_issues_count = handle_uploaded_essay(request.FILES['file'], essay_title, save_to_db,request)
+                essay_grade,essay,word_count,stop_word_count,spelling_error_count, spelling_errors, grammar_issues_list, grammar_issues_count, confidence_score = handle_uploaded_essay(request.FILES['file'], essay_title, save_to_db,request)
                 #for issue in grammar_issues_list:
                 #    print(str(issue))
                 return render_to_populated_response('upload_essay.html',\
@@ -261,7 +263,8 @@ def submit_essay(request):
                 'stop_word_count':stop_word_count,\
                 'spelling_errors':spelling_errors,\
                 'grammar_issues_list':grammar_issues_list,\
-                'grammar_issues_count':grammar_issues_count},request)
+                'grammar_issues_count':grammar_issues_count,\
+                'confidence_score':confidence_score},request)
             else:
                 #This will return the same form but with errors displayed to the user
                 return render_to_populated_response('upload_essay.html',\
