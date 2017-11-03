@@ -19,9 +19,11 @@ class predictGrades:
         clf = joblib.load('gradingModel.pkl')
         df = pd.DataFrame()
         df['essay'] = [essay]
-        print (df['essay'])
-        return clf.predict(df['essay'])[0]
+        # print (df['essay'])
+        confidence = (clf.predict_proba(df['essay'])[0][ord(clf.predict(df['essay'])[0]) - ord('A')])
+        # print (confidence)
+        return (clf.predict(df['essay'])[0], confidence)
 
 if __name__ == "__main__":
     pg = predictGrades()
-    print (pg.predict("random test"))
+    print (pg.predict("random test huehuehueuhe"))

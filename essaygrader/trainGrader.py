@@ -301,7 +301,7 @@ if __name__ == "__main__":
     # scaler = StandardScaler()
     # X = scaler.fit_transform(essay)
     # X_2d = scaler.fit_transform(X)
-    X_train, X_test, y_train, y_test = train_test_split(essay,grade,test_size=0.2)
+    X_train, X_test, y_train, y_test = train_test_split(essay,grade,test_size=0.5)
 
     # switch to word2vec
     # add feature union to support multiple features
@@ -317,9 +317,9 @@ if __name__ == "__main__":
         ('word_count', NumWordsTransformer()),
         ('char_count', NumCharTransformer()),
         ('num_stop_words', NumStopWordsTransformer()),
-        ('num_punctuations', NumPunctuationTransformer()),
-        ('num_grammar', NumIncorrectGrammarTransformer()),
-        ('num_incorrect_spellings', NumIncorrectSpellingTransformer())
+        ('num_punctuations', NumPunctuationTransformer())
+        # ('num_incorrect_spellings', NumIncorrectSpellingTransformer())
+        # ('num_grammar', NumIncorrectGrammarTransformer()),
         ])),
         ('classifier', clf)
     ])
