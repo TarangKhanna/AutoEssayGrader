@@ -4,3 +4,5 @@
 *.pyc
 
 webapp/.DS_Store
+
+essaygrader/glove/glove.6B.100d.txt

@@ -164,7 +164,7 @@ class trainModel:
         self.df.loc[(self.df['domain1_score'] >= 45), 'domain1_grade'] = 'D'
         self.df.loc[(self.df['domain1_score'] >= 55), 'domain1_grade'] = 'C'
         self.df.loc[(self.df['domain1_score'] >= 70), 'domain1_grade'] = 'B'
-        self.df.loc[self.df['domain1_score'] >= 80, 'domain1_grade'] = 'A'
+        self.df.loc[self.df['domain1_score'] >= 85, 'domain1_grade'] = 'A'
         self.df.loc[self.df['domain1_score'] < 35, 'domain1_grade'] = 'F'
         # preprocess and save this to csv
 
@@ -265,7 +265,7 @@ if __name__ == "__main__":
     print (data[['essay_id', 'domain1_score', 'domain1_grade']])
     # histogram to check distribution of grades
     data['domain1_grade'].value_counts().plot(kind='bar')
-    plt.show()
+    # plt.show()
     data.dropna()
     
     # data.dropna(subset='vdomain1_score')
@@ -332,9 +332,9 @@ if __name__ == "__main__":
         ('word_count', NumWordsTransformer()),
         ('char_count', NumCharTransformer()),
         ('num_stop_words', NumStopWordsTransformer()),
-        ('num_punctuations', NumPunctuationTransformer())
-        # ('num_incorrect_spellings', NumIncorrectSpellingTransformer())
-        # ('num_grammar', NumIncorrectGrammarTransformer()),
+        ('num_punctuations', NumPunctuationTransformer()),
+        ('num_incorrect_spellings', NumIncorrectSpellingTransformer())
+        # ('num_grammar', NumIncorrectGrammarTransformer())
         ])),
         ('classifier', clf)
     ])
