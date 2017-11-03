@@ -164,10 +164,25 @@ class trainModel:
         self.df.loc[(self.df['domain1_score'] >= 45), 'domain1_grade'] = 'D'
         self.df.loc[(self.df['domain1_score'] >= 55), 'domain1_grade'] = 'C'
         self.df.loc[(self.df['domain1_score'] >= 70), 'domain1_grade'] = 'B'
-        self.df.loc[self.df['domain1_score'] >= 85, 'domain1_grade'] = 'A'
+        self.df.loc[self.df['domain1_score'] >= 80, 'domain1_grade'] = 'A'
         self.df.loc[self.df['domain1_score'] < 35, 'domain1_grade'] = 'F'
         # preprocess and save this to csv
 
+        # set the prompt
+        prompt1 = """More and more people use computers,
+        but not everyone agrees that this benefits society. Those who support advances in 
+        technology believe that computers have a positive effect on people. They teach hand-eye 
+        coordination, give people the ability to learn about faraway places and people, and even 
+        allow people to talk online with other people. Others have different ideas. Some experts are 
+        concerned that people are spending too much time on their computers and less time exercising, 
+        enjoying nature, and interacting with family and friends. Write a letter to your local newspaper
+        in which you state your opinion on the effects computers have on people. 
+        Persuade the readers to agree with you."""
+
+        # self.df.loc[self.df['essay_set'] == 1, 'prompt'] = prompt1
+        # self.df.loc[self.df['essay_set'] == 3, 'prompt'] = prompt3
+        # self.df.loc[self.df['essay_set'] == 4, 'prompt'] = prompt4
+        
         # c
         return self.df.loc[(self.df['essay_set'] == 1) | (self.df['essay_set'] == 3) | (self.df['essay_set'] == 4)]
 
@@ -250,7 +265,7 @@ if __name__ == "__main__":
     print (data[['essay_id', 'domain1_score', 'domain1_grade']])
     # histogram to check distribution of grades
     data['domain1_grade'].value_counts().plot(kind='bar')
-    # plt.show()
+    plt.show()
     data.dropna()
     
     # data.dropna(subset='vdomain1_score')
