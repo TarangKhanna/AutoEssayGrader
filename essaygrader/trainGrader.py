@@ -1,4 +1,4 @@
-from __future__ import division # preventing division issue in 2.7
+from __future__ import division 
 import pandas as pd 
 import math
 import string
@@ -303,7 +303,7 @@ if __name__ == "__main__":
     # clf = svm.SVR(kernel='poly', C=1e3, degree=2)
     # classification, with labels = 'A, B, C, D, E, F'
     # 67.8% accuracy with these parameters
-    clf = svm.SVC(C=1, cache_size=500, class_weight=None, coef0=0.0,
+    clf = svm.SVC(C=1, cache_size=500, class_weight='balanced', coef0=0.0,
     decision_function_shape='ovo', gamma='auto', kernel='rbf',
     max_iter=-1, probability=True, random_state=None, shrinking=False,
     tol=0.001, verbose=False)
@@ -332,8 +332,8 @@ if __name__ == "__main__":
         ('word_count', NumWordsTransformer()),
         ('char_count', NumCharTransformer()),
         ('num_stop_words', NumStopWordsTransformer()),
-        ('num_punctuations', NumPunctuationTransformer()),
-        ('num_incorrect_spellings', NumIncorrectSpellingTransformer())
+        ('num_punctuations', NumPunctuationTransformer())
+        # ('num_incorrect_spellings', NumIncorrectSpellingTransformer())
         # ('num_grammar', NumIncorrectGrammarTransformer())
         ])),
         ('classifier', clf)
