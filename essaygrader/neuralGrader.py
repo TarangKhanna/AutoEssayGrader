@@ -1,5 +1,5 @@
 # need tensorflow and keras installed for this
-# use GPU to make this faster
+# use GPU to make this train faster
 # also need python 2.7 for this -- source activate py27
 import numpy as np
 import pandas as pd

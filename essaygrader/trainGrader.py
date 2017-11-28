@@ -48,7 +48,6 @@ class NumWordsTransformer(TransformerMixin):
     def transform(self, X, **transform_params):
         lengths = pd.DataFrame(X)
         l = lengths['essay'].str.split(" ").str.len()
-        # print (l)
         return pd.DataFrame(l)
 
     def fit(self, X, y=None, **fit_params):
@@ -142,6 +141,17 @@ class NumIncorrectSpellingTransformer(TransformerMixin):
             count += 1
         return count
 
+# class PromptSimilarityTransformer(TransformerMixin):
+#     def transform(self, X, **transform_params):
+#         df = pd.DataFrame(X)
+#         prompt = df['prompt']
+#         essay = df['essay']
+#         # print (l)
+#         return pd.DataFrame(l)
+
+#     def fit(self, X, y=None, **fit_params):
+#         return self
+
 class trainModel:
     def __init__(self):
         self.df = None
@@ -152,10 +162,12 @@ class trainModel:
         # print(xl.sheet_names)
         self.df = xl.parse("training_set")
 
+        # remove @CAPS , etc from essay 
+        
         # we expect 1785 rows of training data, but found 1783
         # get percentages
         self.df.loc[self.df['essay_set'] == 1, 'domain1_score'] *= 100/12
-        # self.df.loc[self.df['essay_set'] == 8, 'domain1_score'] *= 100/60
+        self.df.loc[self.df['essay_set'] == 8, 'domain1_score'] *= 100/60
         self.df.loc[self.df['essay_set'] == 3, 'domain1_score'] *= 100/3
         self.df.loc[self.df['essay_set'] == 4, 'domain1_score'] *= 100/3
         # convert percentages to grade cutoffs 
@@ -169,8 +181,7 @@ class trainModel:
         # preprocess and save this to csv
 
         # set the prompt
-        prompt1 = """More and more people use computers,
-        but not everyone agrees that this benefits society. Those who support advances in 
+        prompt1 = """More and more people use computers, but not everyone agrees that this benefits society. Those who support advances in 
         technology believe that computers have a positive effect on people. They teach hand-eye 
         coordination, give people the ability to learn about faraway places and people, and even 
         allow people to talk online with other people. Others have different ideas. Some experts are 
@@ -179,12 +190,12 @@ class trainModel:
         in which you state your opinion on the effects computers have on people. 
         Persuade the readers to agree with you."""
 
-        # self.df.loc[self.df['essay_set'] == 1, 'prompt'] = prompt1
+        self.df.loc[self.df['essay_set'] == 1, 'prompt'] = prompt1
         # self.df.loc[self.df['essay_set'] == 3, 'prompt'] = prompt3
         # self.df.loc[self.df['essay_set'] == 4, 'prompt'] = prompt4
         
-        # c
-        return self.df.loc[(self.df['essay_set'] == 1) | (self.df['essay_set'] == 3) | (self.df['essay_set'] == 4)]
+        # c  | (self.df['essay_set'] == 3) | (self.df['essay_set'] == 4)
+        return self.df.loc[(self.df['essay_set'] == 1)]
 
 #   def cleanData(self):
 #     self.df.dropna()
@@ -281,7 +292,7 @@ if __name__ == "__main__":
     # use essay_set to understand the context of the essay
     # deal with Anonymization in essay 
     essay = data['essay']
-
+    # essay = data[['essay', 'prompt']]
     # data['text_length'] =  data['essay'].str.len()
     # print(data['text_length'])
 
@@ -303,19 +314,21 @@ if __name__ == "__main__":
     # clf = svm.SVR(kernel='poly', C=1e3, degree=2)
     # classification, with labels = 'A, B, C, D, E, F'
     # 67.8% accuracy with these parameters
-    clf = svm.SVC(C=1, cache_size=500, class_weight='balanced', coef0=0.0,
-    decision_function_shape='ovo', gamma='auto', kernel='rbf',
-    max_iter=-1, probability=True, random_state=None, shrinking=False,
-    tol=0.001, verbose=False)
+    # clf = svm.SVC(C=1, cache_size=500, class_weight='balanced', coef0=0.0,
+    # decision_function_shape='ovo', gamma='auto', kernel='rbf',
+    # max_iter=-1, probability=True, random_state=None, shrinking=False,
+    # tol=0.001, verbose=False)
 
     # 71% accuracy with these parameters 
-    # clf = KNeighborsClassifier(n_neighbors=100)
+    clf = KNeighborsClassifier(n_neighbors=100)
 
     # X = essay,  data['text_length']
 
     # scaler = StandardScaler()
     # X = scaler.fit_transform(essay)
     # X_2d = scaler.fit_transform(X)
+
+    # switch to two inputs = (essay, prompt)
     X_train, X_test, y_train, y_test = train_test_split(essay,grade,test_size=0.5)
 
     # switch to word2vec
@@ -333,6 +346,7 @@ if __name__ == "__main__":
         ('char_count', NumCharTransformer()),
         ('num_stop_words', NumStopWordsTransformer()),
         ('num_punctuations', NumPunctuationTransformer())
+        # ('prompt_similarity', PromptSimilarityTransformer())
         # ('num_incorrect_spellings', NumIncorrectSpellingTransformer())
         # ('num_grammar', NumIncorrectGrammarTransformer())
         ])),
@@ -379,9 +393,6 @@ if __name__ == "__main__":
 
     # print ('Prediction:')
     # print (pipe_clf.predict(essay[1000:1020]))
-
-
-
 
 # Data columns descriptions:
 
