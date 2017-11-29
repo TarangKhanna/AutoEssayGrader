@@ -1,6 +1,7 @@
 from __future__ import division 
 import pandas as pd 
-import math
+import re, math
+from collections import Counter
 import string
 import numpy as np
 from sklearn.metrics import classification_report
@@ -156,6 +157,24 @@ class trainModel:
     def __init__(self):
         self.df = None
 
+    def get_cosine(self, vec1, vec2):
+        intersection = set(vec1.keys()) & set(vec2.keys())
+        numerator = sum([vec1[x] * vec2[x] for x in intersection])
+
+        sum1 = sum([vec1[x]**2 for x in vec1.keys()])
+        sum2 = sum([vec2[x]**2 for x in vec2.keys()])
+        denominator = math.sqrt(sum1) * math.sqrt(sum2)
+
+        if not denominator:
+        return 0.0
+        else:
+        return float(numerator) / denominator
+
+    def text_to_vector(self, text):
+        WORD = re.compile(r'\w+')
+        words = WORD.findall(text)
+        return Counter(words)
+
     def readData(self): 
         file_name_training = 'original_training_data.xlsx'
         xl = pd.ExcelFile(file_name_training, options={'encoding':'utf-8'})
@@ -190,7 +209,15 @@ class trainModel:
         in which you state your opinion on the effects computers have on people. 
         Persuade the readers to agree with you."""
 
-        self.df.loc[self.df['essay_set'] == 1, 'prompt'] = prompt1
+        # calculate and store similarity
+        # vector1 = text_to_vector(essay)
+        # vector2 = text_to_vector(prompt1)
+
+        # cosine = get_cosine(vector1, vector2)
+
+        # print ('Cosine:', cosine)
+
+        # self.df.loc[self.df['essay_set'] == 1, 'promptSimilarity'] = prompt1
         # self.df.loc[self.df['essay_set'] == 3, 'prompt'] = prompt3
         # self.df.loc[self.df['essay_set'] == 4, 'prompt'] = prompt4
         
