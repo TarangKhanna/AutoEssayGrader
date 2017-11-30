@@ -166,9 +166,9 @@ class trainModel:
         denominator = math.sqrt(sum1) * math.sqrt(sum2)
 
         if not denominator:
-        return 0.0
+            return 0.0
         else:
-        return float(numerator) / denominator
+            return float(numerator) / denominator
 
     def text_to_vector(self, text):
         WORD = re.compile(r'\w+')
@@ -210,9 +210,22 @@ class trainModel:
         Persuade the readers to agree with you."""
 
         # calculate and store similarity
+        self.df = self.df.loc[(self.df['essay_set'] == 1)]
+        self.df_mod = self.df[['essay_set', 'essay']]
+        cos_sims = []
+        for row in self.df_mod.iterrows():
+            # print (row[1]['essay_set'])
+            if row[1]['essay_set'] == 1:
+                vector1 = self.text_to_vector(row[1]['essay'])
+                vector2 = self.text_to_vector(prompt1)
+                cosine = self.get_cosine(vector1, vector2)
+                cos_sims.append(cosine)
+                
+        self.df['cosine'] = cos_sims
+
         # vector1 = text_to_vector(essay)
         # vector2 = text_to_vector(prompt1)
-
+        print (self.df)
         # cosine = get_cosine(vector1, vector2)
 
         # print ('Cosine:', cosine)
@@ -222,7 +235,7 @@ class trainModel:
         # self.df.loc[self.df['essay_set'] == 4, 'prompt'] = prompt4
         
         # c  | (self.df['essay_set'] == 3) | (self.df['essay_set'] == 4)
-        return self.df.loc[(self.df['essay_set'] == 1)]
+        return self.df
 
 #   def cleanData(self):
 #     self.df.dropna()
@@ -300,7 +313,7 @@ def plot_learning_curve(estimator, title, X, y, ylim=None, cv=None,
 if __name__ == "__main__":
     train = trainModel()
     data = train.readData()
-    print (data[['essay_id', 'domain1_score', 'domain1_grade']])
+    print (data[['essay_id', 'domain1_score', 'domain1_grade', ]])
     # histogram to check distribution of grades
     data['domain1_grade'].value_counts().plot(kind='bar')
     # plt.show()
