@@ -1,0 +1,77 @@
+{% extends "template.html" %}
+
+
+{% load static from staticfiles %}
+<html>
+<head>
+	{% block head_components %}
+   	{% endblock %}
+</head>
+{% block content %}
+<script>
+	function show_feedback(essay_file_name) {
+		console.log("Essay File: " + essay_file_name);
+		//var graded_list = {{graded_essay_list|safe}};
+		//console.log("List type: " + typeof(graded_list));
+	}
+	/*function show_feedback(graded_essay) {
+		console.log("Essay File: " + graded_essay.essay_file_name);
+		//var graded_list = {{graded_essay_list}};
+		//console.log("List type: " + typeof(graded_list));
+	}*/
+</script>
+<body>
+	<h3>Upload a Folder</h3>
+	{% if success %}
+		<div class="alert alert-success">
+	  		{{success}}
+		</div>
+	{% endif %}
+	<form class="horizontal-form" action="/webapp/submit_essay_batch/" enctype="multipart/form-data" method="post">{%csrf_token%}
+		{% for error in form.non_field_errors %}
+			<div class="alert alert-danger">
+	           Error: {{error}}
+	        </div>
+        {% endfor %}
+        {% for field in form %}
+        	{% if field.errors %}
+			<div class="alert alert-danger">
+            	{{field.errors}}
+        	</div>
+        	{% endif %}
+			<div class="form-group">
+				{{field.label}}
+				{{field|linebreaks}}
+			</div>
+		{% endfor %}
+		<div class="form-group">
+			<input class="btn btn-primary" type="submit" value="Evaluate All Essays" />
+		</div>
+	</form>
+
+	{% if graded_essay_list %}
+		<div class="container">
+			<h4>Graded Essays</h4>
+			<p></p>
+			<table class="table table-bordered">
+				<thead>
+					<tr>
+						<th>File Name</th>
+						<th>Grade</th>
+					</tr>
+				</thead>
+				<tbody>
+					{% for graded_essay in graded_essay_list %}
+					<tr>
+						<td>{{graded_essay.essay_file_name}}</td>
+						<td>{{graded_essay.essay_grade}}</td>
+						<td><button type="button" id="{{graded_essay.essay_file_name}}" onclick="show_feedback('{{graded_essay.essay_file_name}}')" class="btn btn-info">View Feedback</button></td>
+					</tr>
+					{% endfor %}
+				</tbody>
+			</table>
+		</div>
+	{% endif %}
+</body>
+{% endblock %}
+</html>

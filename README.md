@@ -18,6 +18,9 @@ sudo pip install python-firebase<br />
 Install language_check:<br />
 pip install language_check<br />
 <br />
+Install Copyleaks Python SDK:<br />
+pip3 install copyleaks<br />
+<br />
 Migrate Changes in modules:<br />
 python manage.py migrate<br />
 <br />

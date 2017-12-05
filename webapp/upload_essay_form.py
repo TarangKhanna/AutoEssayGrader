@@ -3,7 +3,7 @@ from django.core.exceptions import ValidationError
 import os
 
 class UploadEssayForm(forms.Form):
-    title = forms.CharField(label="Essay Title: ",max_length=50, required=True,widget=forms.TextInput(attrs={'class':'form-control','placeholder':'Essay Title'}))
+    title = forms.CharField(label="Essay Prompt: ",max_length=50, required=True,widget=forms.TextInput(attrs={'class':'form-control','placeholder':'Essay Prompt'}))
 
     save_essay_checkbox = forms.BooleanField(label="Save Essay To DB: ",initial=True,required=False)
 

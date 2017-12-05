@@ -3,6 +3,8 @@ from django.http import HttpResponse
 from .request_handler import render_to_populated_response, get_param_with_default
 from .upload_essay_form import UploadEssayForm
 from .login_form import UploadLoginForm
+from .upload_essay_folder_form import UploadEssayFolderForm
+from .GradedEssay import GradedEssay
 
 from essaygrader.predictGrades import predictGrades
 from essaygrader.trainGrader import NumWordsTransformer
@@ -19,6 +21,8 @@ import json
 import language_check
 
 from nltk import tokenize
+
+import os
 
 def signup(request):
 
@@ -129,9 +133,7 @@ def not_logged_in_redirect(request):
         'form': form,\
         'error': "Please login to access the secured parts of this website!"},request)
 
-def contact_us(request):
 
-        return HttpResponse('Contact Us Page') #TODO
 
 def logout(request):
 
@@ -170,6 +172,40 @@ def save_essay_to_db(essay_text, essay_grade, essay_title, request):
             return 0
 
     return 0
+
+def handle_uploaded_folder(valid_files, essay_title, save_to_db, request):
+    
+    essays = []
+    predictor = predictGrades()
+
+    for essay_file in valid_files:
+        essay = ""
+        for chunk in essay_file.chunks():
+            essay += chunk.decode("utf-8")
+
+        try:
+            essay_grade, confidence_score = predictor.predict(essay)
+            confidence_score = int((round(confidence_score,2) * 100)) #Percentage
+            word_count = get_word_count(essay)
+            stop_word_count = get_stop_word_count(essay)
+            spelling_error_count, spelling_errors = get_spelling_error_count(essay)
+            grammar_issues_list, grammar_issues_count = get_grammer_correction_list(essay)
+            
+            #print (essay_file.name + "\n Grade: " + str(essay_grade) + "\n Text: " + str(essay) + "\n\n")
+            
+            graded_essay = GradedEssay(essay, essay_grade, essay_file.name, confidence_score, word_count, stop_word_count, \
+                spelling_error_count, spelling_errors, grammar_issues_list, grammar_issues_count)
+
+            essays.append(graded_essay)
+
+        except Exception as e:
+            print(e)
+            traceback.print_exc()
+            essay_grade = "None"
+            graded_essay = GradedEssay(essay, essay_grade, essay_file.name, "", 0, 0, 0, 0, [], [], 0)
+            essays.append(graded_essay)
+
+    return essays
 
 def handle_uploaded_essay(essay_file, essay_title, save_to_db,request):
 
@@ -277,6 +313,43 @@ def submit_essay(request):
     else: #Not Logged in
         return not_logged_in_redirect(request)
 
+def submit_essay_batch(request):
+    if 'user' in request.session:
+        user_name = request.session['user']['email']
+        if request.method == 'POST':
+            form = UploadEssayFolderForm(request.POST,request.FILES)
+            if form.is_valid():
+                essay_title = form.cleaned_data["title"]
+                save_to_db = form.cleaned_data["save_essay_checkbox"]
+                #all_files = form.all_files
+                valid_files = form.valid_files #Uploaded files validated within form class itself
+                graded_essay_list = handle_uploaded_folder(valid_files, essay_title, save_to_db, request)
+                return render_to_populated_response('upload_essay_batch.html',\
+                {'title':"Auto Essay Grader",\
+                'user_name': user_name,\
+                'form': form,\
+                'graded_essay_list':graded_essay_list},request)
+            else:
+                return render_to_populated_response('upload_essay_batch.html',\
+                {'title':"Auto Essay Grader",\
+                'user_name': user_name,\
+                'form': form},request)
+        #If its not a POST request then mimic batch_process_essay url and display form page
+        return batch_process_essays(request)
+    else: #Not logged in
+        return not_logged_in_redirect(request)
+
+def batch_process_essays(request):
+
+    if 'user' in request.session:
+        user_name = request.session['user']['email']
+        form = UploadEssayFolderForm()
+        return render_to_populated_response('upload_essay_batch.html',\
+            {'title':"Auto Essay Grader",\
+            'user_name': user_name,\
+            'form': form},request)
+    else: #Not Logged In
+        return not_logged_in_redirect(request)
 
 #Required keys: 'title' and 'user_name' for template.html that is used by all pages after log in/sign up
 def upload_essay(request):

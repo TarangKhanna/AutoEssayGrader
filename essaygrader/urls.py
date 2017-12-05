@@ -25,7 +25,7 @@ NavigationNode = namedtuple('NavigationNode', \
 
 navigation_tree = [NavigationNode(url='/webapp/upload_essay', displayName='Upload Essay', children=None),\
 NavigationNode(url='/webapp/view_past_essays', displayName='View Past Essays', children=None),\
-NavigationNode(url='/webapp/contact_us', displayName='Contact Us', children=None),\
+NavigationNode(url='/webapp/batch_grading', displayName='Batch Grading', children=None),\
 NavigationNode(url='/webapp/logout', displayName='Log Out', children=None),\
 ]
 
