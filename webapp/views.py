@@ -21,6 +21,14 @@ import json
 import language_check
 
 from nltk import tokenize
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+from wordcloud import WordCloud
+
+from io import BytesIO
+
+import base64
 
 import os
 
@@ -218,6 +226,7 @@ def handle_uploaded_essay(essay_file, essay_title, save_to_db,request):
     spelling_errors = []
     grammar_issues_list = []
     grammar_issues_count = 0
+    encoded_image = None
 
     for chunk in essay_file.chunks():
         essay += chunk.decode("utf-8")
@@ -229,6 +238,7 @@ def handle_uploaded_essay(essay_file, essay_title, save_to_db,request):
         stop_word_count = get_stop_word_count(essay)
         spelling_error_count, spelling_errors = get_spelling_error_count(essay)
         grammar_issues_list, grammar_issues_count = get_grammer_correction_list(essay)
+        encoded_image = get_wordcloud_as_encoded_image(essay)
         #print("Essay Grade: " + str(essay_grade) + " %")
 
         if (save_to_db):
@@ -239,7 +249,7 @@ def handle_uploaded_essay(essay_file, essay_title, save_to_db,request):
         traceback.print_exc()
         essay_grade = "Couldn't be determined.."
 
-    return essay_grade,essay,word_count,stop_word_count,spelling_error_count, spelling_errors, grammar_issues_list, grammar_issues_count, confidence_score
+    return essay_grade,essay,word_count,stop_word_count,spelling_error_count, spelling_errors, grammar_issues_list, grammar_issues_count, confidence_score, encoded_image
 
 def get_grammer_correction_list(essay):
 
@@ -285,9 +295,10 @@ def submit_essay(request):
             if form.is_valid():
                 essay_title = form.cleaned_data["title"]
                 save_to_db = form.cleaned_data["save_essay_checkbox"]
-                essay_grade,essay,word_count,stop_word_count,spelling_error_count, spelling_errors, grammar_issues_list, grammar_issues_count, confidence_score = handle_uploaded_essay(request.FILES['file'], essay_title, save_to_db,request)
+                essay_grade,essay,word_count,stop_word_count,spelling_error_count, spelling_errors, grammar_issues_list, grammar_issues_count, confidence_score, encoded_image = handle_uploaded_essay(request.FILES['file'], essay_title, save_to_db,request)
                 #for issue in grammar_issues_list:
                 #    print(str(issue))
+                #encoded_image = encoded_image.decode('utf8')
                 return render_to_populated_response('upload_essay.html',\
                 {'title':"Auto Essay Grader",\
                 'user_name': user_name,\
@@ -300,7 +311,8 @@ def submit_essay(request):
                 'spelling_errors':spelling_errors,\
                 'grammar_issues_list':grammar_issues_list,\
                 'grammar_issues_count':grammar_issues_count,\
-                'confidence_score':confidence_score},request)
+                'confidence_score':confidence_score,\
+                'encoded_wordcloud':encoded_image},request)
             else:
                 #This will return the same form but with errors displayed to the user
                 return render_to_populated_response('upload_essay.html',\
@@ -338,6 +350,35 @@ def submit_essay_batch(request):
         return batch_process_essays(request)
     else: #Not logged in
         return not_logged_in_redirect(request)
+
+def get_wordcloud_as_encoded_image(essay_text):
+    
+    wordcloud = WordCloud().generate(essay_text)
+
+    # Display the generated image:
+    # the matplotlib way:
+    plt.imshow(wordcloud, interpolation='bilinear')
+    plt.axis("off")
+    #plt.show()
+    #title = 'Essay Word Cloud'
+
+    format = "png"
+
+    #sio = cStringIO.StringIO()
+    
+    bio = BytesIO()
+    plt.savefig(bio,format=format)
+
+    #encoded_image = bio.getvalue().encode("base64").strip()
+
+    encoded_image = base64.b64encode(bio.getvalue()).strip()
+    #encoded_image = base64.urlsafe_b64encode(bio.getvalue())
+
+    plt.gcf().clear()
+    bio.close()
+
+    return encoded_image
+
 
 def batch_process_essays(request):
 
