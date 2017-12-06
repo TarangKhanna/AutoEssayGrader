@@ -86,30 +86,6 @@ y_train = labels[:-nb_validation_samples]
 x_val = data[-nb_validation_samples:]
 y_val = labels[-nb_validation_samples:]
 
-# embeddings_index = {}
-# f = open("glove/glove.6B.100d.txt")
-# for line in f:
-#     values = line.split()
-#     word = values[0]
-#     coefs = np.asarray(values[1:], dtype='float32')
-#     embeddings_index[word] = coefs
-# f.close()
-
-# print('Total %s word vectors in Glove 6B 100d.' % len(embeddings_index))
-
-# embedding_matrix = np.random.random((len(word_index) + 1, EMBEDDING_DIM))
-# for word, i in word_index.items():
-#     embedding_vector = embeddings_index.get(word)
-#     if embedding_vector is not None:
-#         # words not found in embedding index will be all-zeros.
-#         embedding_matrix[i] = embedding_vector
-        
-# embedding_layer = Embedding(len(word_index) + 1,
-#                             EMBEDDING_DIM,
-#                             weights=[embedding_matrix],
-#                             input_length=MAX_SEQUENCE_LENGTH,
-#                             trainable=True)
-
 model = Sequential()
 model.add(Embedding(len(word_index) + 1, EMBEDDING_DIM, input_length=MAX_SEQUENCE_LENGTH))
 model.add(Bidirectional(LSTM(64)))
