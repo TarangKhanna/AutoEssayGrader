@@ -42,7 +42,7 @@ def readData():
     df.loc[df['domain1_score'] >= 85, 'domain1_grade'] = 1
     df.loc[df['domain1_score'] < 35, 'domain1_grade'] = 6
     # preprocess and save this to csv
-
+    
     return df.loc[(df['essay_set'] == 1) | (df['essay_set'] == 3) | (df['essay_set'] == 4)]
 
 MAX_SEQUENCE_LENGTH = 1000
