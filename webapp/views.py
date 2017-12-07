@@ -31,7 +31,6 @@ from wordcloud import WordCloud
 from io import BytesIO
 
 import base64
-import StringIO
 import os
 
 def signup(request):
