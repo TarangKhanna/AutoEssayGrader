@@ -20,6 +20,7 @@ from sklearn.decomposition import PCA, NMF
 from sklearn.model_selection import learning_curve
 from sklearn.model_selection import ShuffleSplit
 from sklearn import preprocessing
+import difflib
 from sklearn.feature_extraction.text import TfidfTransformer
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LinearRegression
@@ -216,10 +217,19 @@ class trainModel:
         for row in self.df_mod.iterrows():
             # print (row[1]['essay_set'])
             if row[1]['essay_set'] == 1:
-                vector1 = self.text_to_vector(row[1]['essay'])
-                vector2 = self.text_to_vector(prompt1)
-                cosine = self.get_cosine(vector1, vector2)
-                cos_sims.append(cosine)
+                s1 = row[1]['essay']
+                s2 = prompt1
+                s1w = re.findall('\w+', s1.lower())
+                s2w = re.findall('\w+', s2.lower())
+                s1cnt = Counter(s1w)
+                s2cnt = Counter(s2w)
+                common = set(s1w).intersection(s2w) 
+                
+                # common_ratio = difflib.SequenceMatcher(None, s1w, s2w).ratio()
+                # print '%.1f%% of words common.' % (100*common_ratio)
+                # cosine = self.get_cosine(vector1, vector2)
+                # cos_sims.append(100*common_ratio)
+                cos_sims.append(len(common)/len(prompt1))
                 
         self.df['cosine'] = cos_sims
 
