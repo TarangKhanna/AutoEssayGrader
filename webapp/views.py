@@ -12,6 +12,7 @@ from django.template import Context, loader
 from nltk.corpus import stopwords
 import traceback
 from nltk.tokenize import word_tokenize
+from enchant import DictWithPWL
 from enchant.checker import SpellChecker
 
 from .firebase_util import auth, db, firebase
@@ -279,7 +280,8 @@ def get_stop_word_count(essay):
 def get_spelling_error_count(essay):
     spelling_error_count = 0
     spelling_errors = []
-    chkr = SpellChecker("en_US")
+    my_dict = DictWithPWL("en_US", "morewords.txt")
+    chkr = SpellChecker(my_dict)
     chkr.set_text(essay)
     for err in chkr:
         spelling_error_count += 1
