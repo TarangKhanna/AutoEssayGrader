@@ -2,13 +2,13 @@ from sklearn.externals import joblib
 import pandas as pd 
 # comment below for testing 
 #"""
-from essaygrader.trainGrader import NumWordsTransformer
-from essaygrader.trainGrader import NumStopWordsTransformer
-from essaygrader.trainGrader import NumIncorrectSpellingTransformer
-from essaygrader.trainGrader import NumCharTransformer
-from essaygrader.trainGrader import NumPunctuationTransformer
-from essaygrader.trainGrader import NumIncorrectGrammarTransformer
-from essaygrader.trainGrader import NumIncorrectGrammarTransformer
+# from essaygrader.trainGrader import NumWordsTransformer
+# from essaygrader.trainGrader import NumStopWordsTransformer
+# from essaygrader.trainGrader import NumIncorrectSpellingTransformer
+# from essaygrader.trainGrader import NumCharTransformer
+# from essaygrader.trainGrader import NumPunctuationTransformer
+# from essaygrader.trainGrader import NumIncorrectGrammarTransformer
+# from essaygrader.trainGrader import NumIncorrectGrammarTransformer
 ## uncomment below for testing """
 
 """from trainGrader import NumWordsTransformer
