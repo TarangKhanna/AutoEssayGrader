@@ -20,9 +20,11 @@ import json
 
 import language_check
 
+from PIL import Image
+
 from nltk import tokenize
-import matplotlib
-matplotlib.use('Agg')
+#import matplotlib
+#matplotlib.use("TkAgg")
 import matplotlib.pyplot as plt
 from wordcloud import WordCloud
 
@@ -353,32 +355,49 @@ def submit_essay_batch(request):
 
 def get_wordcloud_as_encoded_image(essay_text):
     
-    wordcloud = WordCloud().generate(essay_text)
-
-    # Display the generated image:
-    # the matplotlib way:
-    plt.imshow(wordcloud, interpolation='bilinear')
-    plt.axis("off")
-    #plt.show()
-    #title = 'Essay Word Cloud'
-
-    format = "png"
-
-    #sio = cStringIO.StringIO()
     
-    bio = BytesIO()
-    plt.savefig(bio,format=format)
+    try:
+        #wordcloud = WordCloud().generate(essay_text)
 
-    #encoded_image = bio.getvalue().encode("base64").strip()
+        # Display the generated image:
+        # the matplotlib way:
+        #plt.imshow(wordcloud, interpolation='bilinear')
+        #plt.axis("off")
+        #plt.show()
+        #title = 'Essay Word Cloud'
 
-    encoded_image = base64.b64encode(bio.getvalue()).strip()
-    #encoded_image = base64.urlsafe_b64encode(bio.getvalue())
+        format = "PNG"
 
-    plt.gcf().clear()
-    bio.close()
+        #sio = cStringIO.StringIO()
+        
+        bio = BytesIO()
 
-    return encoded_image
+        wordcloud = WordCloud(background_color="white",height=600,width=600).generate(essay_text)
+        image = wordcloud.to_image()
+        #image.show()
 
+        old_size = image.size
+        new_size = (610, 610)
+        new_im = Image.new("RGB", new_size)
+        new_im.paste(image, (int((new_size[0]-old_size[0])/2), int((new_size[1]-old_size[1])/2)))
+
+        new_im.save(bio, format)
+        #plt.savefig(bio,format=format)
+
+        #encoded_image = bio.getvalue().encode("base64").strip()
+
+        #encoded_image = base64.b64encode(bio.getvalue()).decode('utf-8').replace('\n', '')
+        #bio.close()
+        #encoded_image = base64.urlsafe_b64encode(bio.getvalue())
+
+        #plt.gcf().clear()
+        encoded_image = base64.b64encode(bio.getvalue())
+
+        return encoded_image
+
+    except Exception as e:
+        print (e)
+        return None
 
 def batch_process_essays(request):
 
