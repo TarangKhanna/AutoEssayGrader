@@ -35,7 +35,9 @@ from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.pipeline import Pipeline
 import nltk
 from nltk.corpus import stopwords
-import enchant
+# import enchant
+from enchant import DictWithPWL
+from enchant.checker import SpellChecker
 import language_check
 
 # todo:
@@ -136,12 +138,12 @@ class NumIncorrectSpellingTransformer(TransformerMixin):
     def spellCheckHelper(self, row):
         count = 0
         tokenizer = RegexpTokenizer(r'\w+')
-        enchantDictionary = enchant.Dict("en_US")
+        # enchantDictionary = enchant.Dict("en_US")
+        my_dict = DictWithPWL("en_US", "morewords.txt")
+        my_checker = SpellChecker(my_dict)
         # use this tokenizer since it eliminates punctuation
-        for word in tokenizer.tokenize(row['essay']):
-          if not enchantDictionary.check(word):
-            count += 1
-        return count
+        my_checker.set_text(row['essay'])
+        return len(my_checker)
 
 # class PromptSimilarityTransformer(TransformerMixin):
 #     def transform(self, X, **transform_params):

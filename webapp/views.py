@@ -353,27 +353,13 @@ def submit_essay_batch(request):
         return not_logged_in_redirect(request)
 
 def get_wordcloud_as_encoded_image(essay_text):
-    
-    
     try:
-        #wordcloud = WordCloud().generate(essay_text)
-
-        # Display the generated image:
-        # the matplotlib way:
-        #plt.imshow(wordcloud, interpolation='bilinear')
-        #plt.axis("off")
-        #plt.show()
-        #title = 'Essay Word Cloud'
-
         format = "PNG"
 
-        #sio = cStringIO.StringIO()
-        
         bio = BytesIO()
 
         wordcloud = WordCloud(background_color="white",height=600,width=600).generate(essay_text)
         image = wordcloud.to_image()
-        #image.show()
 
         old_size = image.size
         new_size = (610, 610)
@@ -381,15 +367,7 @@ def get_wordcloud_as_encoded_image(essay_text):
         new_im.paste(image, (int((new_size[0]-old_size[0])/2), int((new_size[1]-old_size[1])/2)))
 
         new_im.save(bio, format)
-        #plt.savefig(bio,format=format)
-
-        #encoded_image = bio.getvalue().encode("base64").strip()
-
-        #encoded_image = base64.b64encode(bio.getvalue()).decode('utf-8').replace('\n', '')
-        #bio.close()
-        #encoded_image = base64.urlsafe_b64encode(bio.getvalue())
-
-        #plt.gcf().clear()
+  
         encoded_image = base64.b64encode(bio.getvalue())
 
         return encoded_image
