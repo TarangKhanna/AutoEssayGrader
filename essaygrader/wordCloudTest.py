@@ -8,9 +8,9 @@ wordcloud = WordCloud().generate(text)
 
 # Display the generated image:
 # the matplotlib way:
-plt.imshow(wordcloud, interpolation='bilinear')
-plt.axis("off")
-plt.show()
+# plt.imshow(wordcloud, interpolation='bilinear')
+# plt.axis("off")
+# plt.show()
 
-# image = wordcloud.to_image()
-# image.show()
+image = wordcloud.to_image()
+image.show()

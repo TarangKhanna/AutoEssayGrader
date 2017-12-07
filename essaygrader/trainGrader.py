@@ -354,13 +354,13 @@ if __name__ == "__main__":
     # clf = svm.SVR(kernel='poly', C=1e3, degree=2)
     # classification, with labels = 'A, B, C, D, E, F'
     # 67.8% accuracy with these parameters
-    # clf = svm.SVC(C=1, cache_size=500, class_weight='balanced', coef0=0.0,
-    # decision_function_shape='ovo', gamma='auto', kernel='rbf',
-    # max_iter=-1, probability=True, random_state=None, shrinking=False,
-    # tol=0.001, verbose=False)
+    clf = svm.SVC(C=1, cache_size=500, class_weight='balanced', coef0=0.0,
+    decision_function_shape='ovo', gamma='auto', kernel='rbf',
+    max_iter=-1, probability=True, random_state=None, shrinking=False,
+    tol=0.001, verbose=False)
 
     # 71% accuracy with these parameters 
-    clf = KNeighborsClassifier(n_neighbors=100)
+    # clf = KNeighborsClassifier(n_neighbors=100)
 
     # X = essay,  data['text_length']
 

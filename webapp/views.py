@@ -29,7 +29,7 @@ from wordcloud import WordCloud
 from io import BytesIO
 
 import base64
-
+import StringIO
 import os
 
 def signup(request):
@@ -357,8 +357,8 @@ def get_wordcloud_as_encoded_image(essay_text):
 
     # Display the generated image:
     # the matplotlib way:
-    plt.imshow(wordcloud, interpolation='bilinear')
-    plt.axis("off")
+    # plt.imshow(wordcloud, interpolation='bilinear')
+    # plt.axis("off")
     #plt.show()
     #title = 'Essay Word Cloud'
 
@@ -367,14 +367,14 @@ def get_wordcloud_as_encoded_image(essay_text):
     #sio = cStringIO.StringIO()
     
     bio = BytesIO()
-    plt.savefig(bio,format=format)
+    # plt.savefig(bio,format=format)
 
     #encoded_image = bio.getvalue().encode("base64").strip()
 
     encoded_image = base64.b64encode(bio.getvalue()).strip()
     #encoded_image = base64.urlsafe_b64encode(bio.getvalue())
 
-    plt.gcf().clear()
+    # plt.gcf().clear()
     bio.close()
 
     return encoded_image
