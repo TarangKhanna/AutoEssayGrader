@@ -16,5 +16,5 @@ print(sizeof(image))
 #plt.axis("off")
 #plt.show()
 
-# image = wordcloud.to_image()
-# image.show()
+image = wordcloud.to_image()
+image.show()
