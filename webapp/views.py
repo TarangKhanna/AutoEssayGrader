@@ -339,7 +339,7 @@ def get_spelling_error_count(essay):
         spelling_error_count += 1
         spelling_errors.append(err.word)
 
-    return spelling_error_count, spelling_errors
+    return spelling_error_count, list(set(spelling_errors))
 
 def submit_essay(request):
 
