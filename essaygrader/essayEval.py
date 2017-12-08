@@ -39,6 +39,7 @@ class essayEval:
                 # print ('found similar')
                 return (s1, cosine)
     
+    # updates training data with new grade
     def updateTrainingDatabase(self, essay_new, grade_new):
         ind = len(self.df) 
         self.df.loc[ind] = [ind, 9, essay_new, grade_new]
