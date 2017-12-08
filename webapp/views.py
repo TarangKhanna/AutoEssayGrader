@@ -8,6 +8,7 @@ from .GradedEssay import GradedEssay
 
 from essaygrader.predictGrades import predictGrades
 from essaygrader.trainGrader import NumWordsTransformer
+from essaygrader.essayEval import essayEval
 from django.template import Context, loader
 from nltk.corpus import stopwords
 import traceback
@@ -200,16 +201,43 @@ def get_spelling_error_html(spelling_errors):
 
     return sel_html
 
+def check_for_plagiarism(graded_essays):
+
+    evaluator = essayEval()
+    plagiarism_list = []
+    for current_essay in graded_essays:
+        vector1 = evaluator.text_to_vector(current_essay.essay_text)
+        for other_essay in graded_essays:
+
+            if current_essay.essay_text != other_essay.essay_text:
+
+                vector2 = evaluator.text_to_vector(other_essay.essay_text)
+                cosine = evaluator.get_cosine(vector1, vector2)
+                print("\nCosine: " + str(cosine))
+                print("\nCURRENT ESSAY\n" + str(current_essay.essay_file_name))
+                print("\nOther Essay\n" + str(other_essay.essay_file_name))
+
+                if cosine > 0.85 and (other_essay.essay_file_name, current_essay.essay_file_name) not in plagiarism_list:
+                    plagiarism_list.append((current_essay.essay_file_name, other_essay.essay_file_name))
+
+        #s1, cosine = evaluator.checkPlagiarism(current_essay)
+        #
+        #print("\n\n" + str(s1))
+
+    return plagiarism_list
+
+
 def handle_uploaded_folder(valid_files, essay_title, save_to_db, request):
     
     essays = []
+    essay_texts = []
     predictor = predictGrades()
 
     for essay_file in valid_files:
         essay = ""
         for chunk in essay_file.chunks():
             essay += chunk.decode("utf-8")
-
+        essay_texts.append(essay)
         try:
             essay_grade, confidence_score = predictor.predict(essay)
             confidence_score = int((round(confidence_score,2) * 100)) #Percentage
@@ -237,7 +265,9 @@ def handle_uploaded_folder(valid_files, essay_title, save_to_db, request):
             graded_essay = GradedEssay(essay, essay_grade, essay_file.name, "", 0, 0, 0, "", "", 0)
             essays.append(graded_essay)
 
-    return essays
+    plagiarism_list = check_for_plagiarism(essays)
+
+    return essays, plagiarism_list
 
 def handle_uploaded_essay(essay_file, essay_title, save_to_db,request):
 
@@ -360,13 +390,14 @@ def submit_essay_batch(request):
                 save_to_db = form.cleaned_data["save_essay_checkbox"]
                 #all_files = form.all_files
                 valid_files = form.valid_files #Uploaded files validated within form class itself
-                graded_essay_list = handle_uploaded_folder(valid_files, essay_title, save_to_db, request)
+                graded_essay_list, plagiarism_list = handle_uploaded_folder(valid_files, essay_title, save_to_db, request)
                 return render_to_populated_response('upload_essay_batch.html',\
                 {'title':"Auto Essay Grader",\
                 'user_name': user_name,\
                 'form': form,\
                 'graded_essay_list':graded_essay_list,\
-                'graded_essay_count':len(graded_essay_list)},request)
+                'graded_essay_count':len(graded_essay_list),\
+                'plagiarism_list':plagiarism_list},request)
             else:
                 return render_to_populated_response('upload_essay_batch.html',\
                 {'title':"Auto Essay Grader",\

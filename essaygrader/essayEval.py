@@ -38,6 +38,7 @@ class essayEval:
             if cosine > 0.9:
                 # print ('found similar')
                 return (s1, cosine)
+        return (None,None)
     
     # updates training data with new grade
     def updateTrainingDatabase(self, essay_new, grade_new):

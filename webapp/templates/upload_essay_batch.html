@@ -126,7 +126,20 @@
 		</div>
 	</form>
 
+
 	{% if graded_essay_list %}
+		{% if plagiarism_list %}
+		<div class="alert alert-danger">
+		Plagiarism Detected between:<br>
+		{% for e1, e2 in plagiarism_list %}
+			{{e1}} and {{e2}} <br>
+		{% endfor %}
+		</div>
+		{% else %}
+		<div class="alert alert-success">
+			No plagiarism Detected
+		</div>
+		{% endif %}
 		<div class="container">
 			<div class="alert alert-success">
 	  			{{graded_essay_count}} Essays Graded!
