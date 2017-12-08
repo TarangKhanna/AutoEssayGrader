@@ -9,7 +9,7 @@ class UploadEssayFolderForm(forms.Form):
 
     save_essay_checkbox = forms.BooleanField(label="Save Essays To DB: ",initial=True,required=False)
 
-    files = forms.FileField(label="Upload a folder containing .txt files. All txt files within the folder/sub-folder will be graded.",required=True,widget=forms.ClearableFileInput(attrs=
+    files = forms.FileField(label="Upload a folder containing .txt files. All unique txt files within the folder and sub-folder(s) will be graded.",required=True,widget=forms.ClearableFileInput(attrs=
         {'multiple': True, 'webkitdirectory': True, 'directory': True}))
 
     def clean(self):
@@ -24,8 +24,10 @@ class UploadEssayFolderForm(forms.Form):
 
     def get_valid_files(self, all_files):
         valid_files = []
+        valid_file_names = []
         for essay_file in all_files:
             ext = os.path.splitext(essay_file.name)[1]
-            if ext.lower() == ".txt":
+            if ext.lower() == ".txt" and essay_file.name not in valid_file_names:
                 valid_files.append(essay_file)
+                valid_file_names.append(essay_file.name)
         return valid_files

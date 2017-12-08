@@ -9,16 +9,93 @@
 </head>
 {% block content %}
 <script>
-	function show_feedback(essay_file_name) {
-		console.log("Essay File: " + essay_file_name);
-		//var graded_list = {{graded_essay_list|safe}};
-		//console.log("List type: " + typeof(graded_list));
+	function show_feedback(essay_file_name, essay_grade) {
+		console.log("Essay File: " + String(essay_file_name) + " Grade: " + String(essay_grade));
+		var essay_text = document.getElementById(String(essay_file_name) + "EssayText").value;
+		var essay_cs = document.getElementById(essay_file_name + "CS").value;
+		var essay_wc = document.getElementById(essay_file_name + "WC").value;
+		var essay_swc = document.getElementById(essay_file_name + "SWC").value;
+		var essay_sec = document.getElementById(essay_file_name + "SEC").value;
+		var essay_gic = document.getElementById(essay_file_name + "GIC").value;
+		var essay_gil = document.getElementById(essay_file_name + "GIL").value;
+		var essay_sel = document.getElementById(essay_file_name + "SEL").value;
+
+		//var essay_gil_js = [essay_gil];
+
+		/*var essay_gil2 = document.getElementById(essay_file_name + "GIL2").value;
+
+		
+		var essay_sel_js = String(essay_sel).split(',');
+
+
+
+		console.log("\nSEL: " + essay_sel_js[0]);
+
+		console.log("\nGIL: " + String(essay_gil));
+
+		console.log("\nGIL0: " + essay_gil_js[0]);*/
+
+
+		var outerDiv = document.getElementById("FeedbackView");
+		var innerDiv1 = document.getElementById("GradeDiv");
+		var fileName = document.getElementById("fileName");
+		var essay_text_elem = document.getElementById("essay_text_data");
+		var feedbackDiv_elem = document.getElementById("AggDiv");
+		var se_header = document.getElementById("se_header");
+		var spelling_errors_elem = document.getElementById("se_data");
+
+		var gi_header = document.getElementById("gil_header");
+		var grammar_issues_elem = document.getElementById("gi_data");
+		var gi_info = document.getElementById("gi_info");
+
+
+		outerDiv.style.visibility = 'visible';
+
+		//Render unique filename
+		fileName.innerHTML = "File Name: " + String(essay_file_name);
+
+		//Render Grade, confidence
+		innerDiv1.style.visibility = 'visible';
+		innerDiv1.innerHTML = "Essay Grade: " + String(essay_grade) + " <br> Confidence: " + String(essay_cs) + " %";
+
+		//Essay Text
+		essay_text_elem.innerHTML = String(essay_text);
+
+		//Feedback Aggregates
+		feedbackDiv_elem.innerHTML = "Word Count: " + String(essay_wc) + "<br> Stop Word Count: " +
+			String(essay_swc) + "<br> Spelling Error Count: " + String(essay_sec) + "<br> Grammar Issues Count: " + String(essay_gic);
+
+		//Spellling Error List
+		if (String(essay_sel).includes("<br>")) {
+			spelling_errors_elem.innerHTML = String(essay_sel);
+			se_header.style.visibility = 'visible';
+			spelling_errors_elem.style.visibility = 'visible';
+		}
+		else {
+			se_header.style.visibility = 'hidden';
+			spelling_errors_elem.style.visibility = 'hidden';
+		}
+
+		//Grammar Issues List
+		if (String(essay_gil).includes("<pre>")) {
+			grammar_issues_elem.innerHTML = String(essay_gil);
+			/*gi_header.style.visibility = 'visible';
+			grammar_issues_elem.style.visibility = 'visible';
+			gi_info.style.visibility = 'visible';*/
+			gi_header.style.display = 'block';
+			grammar_issues_elem.style.display = 'block';
+			gi_info.style.display = 'block';			
+		}
+		else {
+			/*gi_header.style.visibility = 'hidden';
+			grammar_issues_elem.style.visibility = 'hidden';
+			gi_info.style.visibility = 'hidden';*/
+			gi_header.style.display = 'none';
+			grammar_issues_elem.style.display = 'none';
+			gi_info.style.display = 'none';		
+		}
 	}
-	/*function show_feedback(graded_essay) {
-		console.log("Essay File: " + graded_essay.essay_file_name);
-		//var graded_list = {{graded_essay_list}};
-		//console.log("List type: " + typeof(graded_list));
-	}*/
+	
 </script>
 <body>
 	<h3>Upload a Folder</h3>
@@ -51,13 +128,17 @@
 
 	{% if graded_essay_list %}
 		<div class="container">
+			<div class="alert alert-success">
+	  			{{graded_essay_count}} Essays Graded!
+			</div>
 			<h4>Graded Essays</h4>
 			<p></p>
-			<table class="table table-bordered">
+			<table class="table table-bordered table-striped table-hover sortable">
 				<thead>
 					<tr>
 						<th>File Name</th>
 						<th>Grade</th>
+						<th>Confidence</th>
 					</tr>
 				</thead>
 				<tbody>
@@ -65,13 +146,50 @@
 					<tr>
 						<td>{{graded_essay.essay_file_name}}</td>
 						<td>{{graded_essay.essay_grade}}</td>
-						<td><button type="button" id="{{graded_essay.essay_file_name}}" onclick="show_feedback('{{graded_essay.essay_file_name}}')" class="btn btn-info">View Feedback</button></td>
+						<td>{{graded_essay.confidence_score}} %</td>
+				      	<input type="hidden" id="{{graded_essay.essay_file_name}}EssayText" name="essay_text" value="{{graded_essay.essay_text}}"/>
+				      	
+				      	<input type="hidden" id="{{graded_essay.essay_file_name}}CS" name="confidence_score" value="{{graded_essay.confidence_score}}"/>
+				      	
+				      	<input type="hidden" id="{{graded_essay.essay_file_name}}WC" name="word_count" value="{{graded_essay.word_count}}"/>
+						
+						<input type="hidden" id="{{graded_essay.essay_file_name}}SWC" name="stop_word_count" value="{{graded_essay.stop_word_count}}"/>
+
+						<input type="hidden" id="{{graded_essay.essay_file_name}}SEC" name="spelling_error_count" value="{{graded_essay.spelling_error_count}}"/>
+
+						<input type="hidden" id="{{graded_essay.essay_file_name}}GIC" name="grammar_issues_count" value="{{graded_essay.grammar_issues_count}}"/>
+
+						<input type="hidden" id="{{graded_essay.essay_file_name}}SEL" name="spelling_error_list" value="{{graded_essay.spelling_errors}}"/>
+
+						<input type="hidden" id="{{graded_essay.essay_file_name}}GIL" name="grammar_issues_list" value="{{graded_essay.grammar_issues_list}}"/>
+
+						
+
+						<td><button type="button" id="{{graded_essay.essay_file_name}}" onclick="show_feedback('{{graded_essay.essay_file_name}}','{{graded_essay.essay_grade}}')" class="btn btn-info">View Feedback</button></td>
 					</tr>
 					{% endfor %}
 				</tbody>
 			</table>
 		</div>
 	{% endif %}
+
+	<div id = "FeedbackView" style="visibility: hidden">
+		<h5 id = "fileName"></h5>
+		<div id = "GradeDiv" style="visibility: hidden" class="alert alert-info">
+		</div>
+		<h5>Essay Text:</h5>
+		<pre id = "essay_text_data">{{essay}}</pre>
+		<br>
+		<h4>Feedback:</h4>
+		<div id = "AggDiv" class="alert alert-info">
+		</div>
+		<h5 id = "se_header">Spelling Errors:</h5>
+		<div id = "se_data" class="alert alert-info"></div>
+		<h5 id = "gil_header">Grammatical Issues:</h5>
+		<div id = "gi_data" class="alert alert-info"></div>
+		<p id = "gi_info">A list of all grammar rules can be found <a href="https://community.languagetool.org/rule/list?lang=en-US" target="_blank">here</a>.</p>
+	</div>
+
 </body>
 {% endblock %}
 </html>

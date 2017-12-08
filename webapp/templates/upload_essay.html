@@ -9,7 +9,7 @@
 </head>
 {% block content %}
 <body>
-	<h3>Upload Essay</h3>
+	<h3>Upload an Essay</h3>
 	{% if success %}
 		<div class="alert alert-success">
 	  		{{success}}
@@ -51,7 +51,7 @@
 			Word Count: {{word_count}} <br>
 			Stop Word Count: {{stop_word_count}} <br>
 			Spelling Error Count: {{spelling_error_count}} <br>
-			Grammer Issues Count: {{grammar_issues_count}}
+			Grammar Issues Count: {{grammar_issues_count}}
 		</div>
 		{% if spelling_error_count > 0 %}
 
